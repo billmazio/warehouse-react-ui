@@ -1,0 +1,75 @@
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: url('DALL·E 2024-12-04 09.08.16.jpg') no-repeat center center/cover;
+
+}
+.login-form {
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    color: #ffffff;
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Form heading */
+.login-form h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+/* Form input fields */
+.form-group {
+    width: 100%; /* Ensures input fields take up the full width of the form */
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.form-group input {
+    width: 100%; /* Full width inside the parent container */
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: #f9f9f9;
+    text-align: center; /* Centers text inside the input fields */
+}
+
+/* Login button */
+.btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    border: none;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+    transform: scale(1.02);
+}
+
+/* Error message */
+.error-message {
+    color: #ff4d4d;
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: bold;
+}

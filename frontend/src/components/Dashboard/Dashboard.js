@@ -1,0 +1,157 @@
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate, Outlet } from "react-router-dom";
+import { fetchDashboardData, fetchUserDetails } from "../../services/api";
+import "./Dashboard.css";
+
+const Dashboard = () => {
+    const [dashboardData, setDashboardData] = useState({
+        user: 0,
+        materials: 0,
+        sizes: 0,
+        orders: 0,
+        stores: 0,
+    });
+    const [userDetails, setUserDetails] = useState(null);
+    const [error, setError] = useState("");
+    const navigate = useNavigate();
+    const location = useLocation(); // Current route for active class
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [dashboardResponse, userResponse] = await Promise.all([
+                    fetchDashboardData(),
+                    fetchUserDetails(),
+                ]);
+                console.log("Dashboard Response:", dashboardResponse);
+
+                setDashboardData({
+                    user: dashboardResponse.user || 0,
+                    materials: dashboardResponse.materials || 0,
+                    sizes: dashboardResponse.sizes || 0,
+                    orders: dashboardResponse.orders || 0,
+                    stores: dashboardResponse.stores || 0,
+                });
+
+                setUserDetails(userResponse);
+            } catch (err) {
+                console.error("Error fetching data:", err);
+                setError("Failed to load data.");
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const handleNavigation = (path) => {
+        navigate(path); // Navigate to specific paths
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+    };
+
+    return (
+        <div className="dashboard-container">
+            {/* Sidebar */}
+            <aside className="sidebar">
+                <div className="sidebar-header">
+                    <div className="user-avatar">
+                        <span>{userDetails?.username?.charAt(0).toUpperCase() || "U"}</span>
+                    </div>
+                    <div className="user-info">
+                        <h4 className="username">{userDetails?.username || "User"}</h4>
+                    </div>
+                </div>
+                <ul className="menu">
+                    <li
+                        className={location.pathname === "/dashboard" ? "active" : ""}
+                        onClick={() => handleNavigation("/dashboard")}
+                    >
+                        <i className="fa fa-palette"></i> Αρχική
+                    </li>
+                    <li
+                        className={location.pathname === "/dashboard/manage-users" ? "active" : ""}
+                        onClick={() => handleNavigation("/dashboard/manage-users")}
+                    >
+                        <i className="fa fa-users"></i> Διαχείριση Χρηστών
+                    </li>
+                    <li
+                        className={location.pathname === "/dashboard/manage-stores" ? "active" : ""}
+                        onClick={() => handleNavigation("/dashboard/manage-stores")}
+                    >
+                        <i className="fa fa-warehouse"></i> Αποθήκες
+                    </li>
+                    <li
+                        className={location.pathname === "/dashboard/manage-materials" ? "active" : ""}
+                        onClick={() => handleNavigation("/dashboard/manage-materials")}
+                    >
+                        <i className="fa fa-tshirt"></i> Ενδύματα
+                    </li>
+                    <li
+                        className={location.pathname === "/dashboard/manage-orders" ? "active" : ""}
+                        onClick={() => handleNavigation("/dashboard/manage-orders")}
+                    >
+                        <i className="fa fa-shopping-cart"></i> Παραγγελίες
+                    </li>
+                    <li
+                        className={location.pathname === "/dashboard/change-password" ? "active" : ""}
+                        onClick={() => handleNavigation("/dashboard/change-password")}
+                    >
+                        <i className="fa fa-lock"></i> Αλλαγή Κωδικού
+                    </li>
+                </ul>
+            </aside>
+
+            {/* Main Content */}
+            <main className="main-content">
+                <header className="header">
+                    <button className="logout-btn" onClick={handleLogout}>
+                        Αποσύνδεση
+                    </button>
+                </header>
+
+                {/* Render Error if Any */}
+                {error && <p className="error-message">{error}</p>}
+
+                {/* Dashboard Cards */}
+                {!location.pathname.includes("manage") && (
+                    <section className="dashboard-cards">
+                        <div className="card" onClick={() => handleNavigation("/dashboard/manage-users")}>
+                            <i className="fa fa-users card-icon"></i>
+                            <h3>Διαχείριση Χρηστών</h3>
+                            <p>Ενεργοί Χρήστες: {dashboardData.user}</p>
+                        </div>
+                        <div className="card" onClick={() => handleNavigation("/dashboard/manage-materials")}>
+                            <i className="fa fa-tshirt card-icon"></i>
+                            <h3>Διαχείριση Ενδυμάτων</h3>
+                            <p>Καταχωρημένα: {dashboardData.materials}</p>
+                        </div>
+                        <div className="card" onClick={() => handleNavigation("/dashboard/manage-orders")}>
+                            <i className="fa fa-shopping-cart card-icon"></i>
+                            <h3>Παραγγελίες</h3>
+                            <p>Συνολικές Παραγγελίες: {dashboardData.orders}</p>
+                        </div>
+                        <div className="card" onClick={() => handleNavigation("/dashboard/manage-stores")}>
+                            <i className="fa fa-warehouse card-icon"></i>
+                            <h3>Διαχείριση Αποθηκών</h3>
+                            <p>Ενεργές Αποθήκες: {dashboardData.stores}</p>
+                        </div>
+                    </section>
+                )}
+
+                {/* Nested Content */}
+                <div className="content">
+                    <Outlet />
+                </div>
+
+                <footer className="footer">
+                    <p>&copy; 2024 Storage Management. All Rights Reserved.</p>
+                </footer>
+            </main>
+        </div>
+    );
+};
+
+export default Dashboard;
