@@ -87,7 +87,6 @@
     background-color: #007bff;
     color: #fff;
     padding: 10px;
-    font-weight: bold;
     text-align: center;
     border-right: 1px solid #ddd;
 }
@@ -100,7 +99,9 @@
     padding: 10px;
     text-align: center;
     border-bottom: 1px solid #ddd;
+    color: #333;
 }
+
 
 .user-table tr:last-child td {
     border-bottom: none;
