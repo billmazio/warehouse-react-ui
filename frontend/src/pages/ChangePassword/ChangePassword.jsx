@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import axios from "../../services/api"; // Adjust path if necessary
-import "./ChangePassword.css"; // Optional: Add styles if needed
+import axios from "../../services/api";
+import "./ChangePassword.css";
 
 const ChangePassword = () => {
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [message, setMessage] = useState("");
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleChangePassword = async (e) => {
         e.preventDefault();
@@ -27,11 +29,17 @@ const ChangePassword = () => {
             setNewPassword("");
             setConfirmPassword("");
         } catch (error) {
-            setMessage("Αποτυχία αλλαγής κωδικού: " + (error.response?.data || error.message));
+            setMessage((error.response?.data || error.message));
         }
     };
 
-
+    const handleCancel = (e) => {
+        e.preventDefault(); // Prevent default form behavior
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setMessage(""); // Clear any error or success message
+    };
 
     return (
         <div className="password-container">
@@ -48,23 +56,40 @@ const ChangePassword = () => {
                 </div>
                 <div className="password-form-group">
                     <label>Νέος Κωδικός</label>
-                    <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        required
-                    />
+                    <div className="password-input-wrapper">
+                        <input
+                            type={showNewPassword ? "text" : "password"}
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            required
+                        />
+                        <span
+                            className="toggle-password"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                        >
+                            {showNewPassword ? "👁️" : "👁️‍🗨️"}
+                        </span>
+                    </div>
                 </div>
                 <div className="password-form-group">
                     <label>Επιβεβαίωση Νέου Κωδικού</label>
-                    <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                    />
+                    <div className="password-input-wrapper">
+                        <input
+                            type={showConfirmPassword ? "text" : "password"}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                        />
+                        <span
+                            className="toggle-password"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                            {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
+                        </span>
+                    </div>
                 </div>
                 <button className="button-password" type="submit">Αλλαγή Κωδικού</button>
+                <button className="cancel-button-password"  onClick={handleCancel}>Ακύρωση</button>
             </form>
             {message && <p className="message">{message}</p>}
         </div>
