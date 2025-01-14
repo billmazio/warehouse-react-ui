@@ -115,8 +115,8 @@ const Dashboard = () => {
                 {/* Render Error if Any */}
                 {error && <p className="error-message">{error}</p>}
 
-                {/* Dashboard Cards */}
-                {!location.pathname.includes("manage") && (
+                {/* Conditionally render dashboard cards only on the main dashboard route */}
+                {location.pathname === "/dashboard" && (
                     <section className="dashboard-cards">
                         <div className="card" onClick={() => handleNavigation("/dashboard/manage-users")}>
                             <i className="fa fa-users card-icon"></i>
