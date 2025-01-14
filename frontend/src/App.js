@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login/Login";
 import Dashboard from "./components/Dashboard/Dashboard";
+import ChangePassword from "./pages/ChangePassword/ChangePassword";
 import PrivateRoute from "./components/PrivateRoute/PrivateRoute";
 import UserManagement from "./components/UserManagement/UserManagement";
 import StoreManagement from "./components/StoreManagement/StoreManagement";
@@ -22,6 +23,15 @@ const App = () => {
                         </PrivateRoute>
                     }
                 >
+                    <Route
+                        path="/dashboard/change-password"
+                        element={
+                            <PrivateRoute>
+                                <ChangePassword />
+                            </PrivateRoute>
+                        }
+                    />
+
                     <Route path="manage-users" element={<UserManagement />} />
                     <Route path="manage-stores" element={<StoreManagement />} />
                     <Route path="manage-materials" element={<CentralMaterialsList />} />
