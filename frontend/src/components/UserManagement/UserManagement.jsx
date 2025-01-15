@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     fetchUsers,
-    fetchUserDetails,
     createUser,
     deleteUser,
     fetchStores,
@@ -15,7 +14,6 @@ const UserManagement = () => {
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [stores, setStores] = useState([]);
-    const [loggedInUserRole, setLoggedInUserRole] = useState("");
     const [error, setError] = useState("");
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [userToDelete, setUserToDelete] = useState(null);
@@ -30,18 +28,14 @@ const UserManagement = () => {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [userData, loggedInUser, storeData] = await Promise.all([
+                const [userData,storeData] = await Promise.all([
                     fetchUsers(),
-                    fetchUserDetails(),
                     fetchStores(),
                 ]);
 
                 setUsers(userData);
                 setStores(storeData);
-                const roles = loggedInUser.roles.map((role) => role.name);
-                if (roles.includes("SUPER_ADMIN")) {
-                    setLoggedInUserRole("SUPER_ADMIN");
-                }
+
             } catch (err) {
                 setError("Failed to fetch data.");
                 console.error("Error:", err);
@@ -65,27 +59,29 @@ const UserManagement = () => {
         if (!userToDelete) return;
 
         try {
-            // Proceed with deletion
             await deleteUser(userToDelete.id);
             setUsers(users.filter((user) => user.id !== userToDelete.id));
             toast.success(`Ο χρήστης "${userToDelete.username}" διαγράφηκε επιτυχώς.`);
         } catch (err) {
-            console.error("Error deleting user:", err);
-            toast.error("Αποτυχία διαγραφής χρήστη.");
+            if (err.response) {
+                if (err.response.status === 403) {
+                    // Display the correct warning message for unauthorized access
+                    toast.error("Δεν έχετε δικαίωμα να διαγράψετε χρήστες.");
+                } else if (err.response.status === 404) {
+                    toast.error("Ο χρήστης δεν βρέθηκε.");
+                } else {
+                    toast.error("Παρουσιάστηκε σφάλμα κατά τη διαγραφή του χρήστη.");
+                }
+            } else {
+                console.error("Error deleting user:", err);
+                toast.error("Παρουσιάστηκε σφάλμα κατά τη διαγραφή του χρήστη.");
+            }
         }
 
         closeConfirmationDialog();
     };
 
-
-
-
     const handleCreate = async () => {
-        if (loggedInUserRole !== "SUPER_ADMIN") {
-            toast.warning("You are not authorized to create users.");
-            return;
-        }
-
         if (!newUser.username.trim() || !newUser.password.trim() || !newUser.storeId) {
             toast.warning("Το Όνομα Χρήστη, ο Κωδικός Πρόσβασης και η επιλογή Αποθήκης είναι απαραίτητα.");
             return;
@@ -97,10 +93,24 @@ const UserManagement = () => {
             setNewUser({ username: "", password: "", role: "LOCAL_ADMIN", enable: 1, storeId: "" });
             toast.success("Ο χρήστης δημιουργήθηκε επιτυχώς.");
         } catch (err) {
-            console.error("Error creating user:", err);
-            toast.error("Το όνομα χρήστη υπάρχει ήδη. Παρακαλώ επιλέξτε διαφορετικό όνομα χρήστη.");
+            if (err.response) {
+                if (err.response.status === 403) {
+                    // Show correct message for unauthorized users
+                    toast.error("Δεν έχετε δικαίωμα να δημιουργήσετε χρήστες.");
+                } else if (err.response.status === 409) {
+                    // Handle duplicate username error
+                    toast.error("Το όνομα χρήστη υπάρχει ήδη. Παρακαλώ επιλέξτε διαφορετικό όνομα χρήστη.");
+                } else {
+                    // General server error
+                    toast.error("Παρουσιάστηκε σφάλμα κατά τη δημιουργία του χρήστη.");
+                }
+            } else {
+                console.error("Error creating user:", err);
+                toast.error("Παρουσιάστηκε σφάλμα κατά τη δημιουργία του χρήστη.");
+            }
         }
     };
+
 
     return (
         <div className="user-management-container">
@@ -112,7 +122,6 @@ const UserManagement = () => {
             <h2>Διαχείριση Χρηστών</h2>
             {error && <p className="error-message">{error}</p>}
 
-            {loggedInUserRole === "SUPER_ADMIN" && (
                 <div className="user-create-form">
                     <input
                         type="text"
@@ -177,7 +186,7 @@ const UserManagement = () => {
                         </button>
                     </div>
                 </div>
-            )}
+
 
             <table className="user-table">
                 <thead>
@@ -200,15 +209,14 @@ const UserManagement = () => {
                         {/* Convert Integer to readable status */}
                         <td>{user.store?.title || "N/A"}</td>
                         <td>
-                            {loggedInUserRole === "SUPER_ADMIN" &&
-                                !user.roles.some((role) => role.name === "SUPER_ADMIN") && ( // Hide delete for SUPER_ADMIN
+
                                     <button
                                         className="delete-button"
                                         onClick={() => openConfirmationDialog(user)}
                                     >
                                         Διαγραφή
                                     </button>
-                                )}
+
                         </td>
 
                     </tr>
