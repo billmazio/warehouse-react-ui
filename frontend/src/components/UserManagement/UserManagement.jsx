@@ -4,7 +4,7 @@ import {
     fetchUsers,
     createUser,
     deleteUser,
-    fetchStores,
+    fetchStores, fetchUserDetails,
 } from "../../services/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -13,6 +13,7 @@ import "./UserManagement.css";
 const UserManagement = () => {
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);
+    const [loggedInUserRole, setLoggedInUserRole] = useState("");
     const [stores, setStores] = useState([]);
     const [error, setError] = useState("");
     const [showConfirmation, setShowConfirmation] = useState(false);
@@ -28,14 +29,25 @@ const UserManagement = () => {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [userData,storeData] = await Promise.all([
-                    fetchUsers(),
-                    fetchStores(),
+                const [userData, userDetails, storeData] = await Promise.all([
+                    fetchUsers(), // Fetch all users
+                    fetchUserDetails(), // Fetch logged-in user details
+                    fetchStores(), // Fetch all stores
                 ]);
 
+                // Set users and stores
                 setUsers(userData);
                 setStores(storeData);
 
+                // Determine and set the role of the logged-in user
+                const roles = userDetails.roles.map((role) => role.name);
+                if (roles.includes("SUPER_ADMIN")) {
+                    setLoggedInUserRole("SUPER_ADMIN");
+                } else if (roles.includes("LOCAL_ADMIN")) {
+                    setLoggedInUserRole("LOCAL_ADMIN");
+                } else {
+                    setLoggedInUserRole(""); // Default or fallback role
+                }
             } catch (err) {
                 setError("Failed to fetch data.");
                 console.error("Error:", err);
@@ -44,6 +56,7 @@ const UserManagement = () => {
 
         loadData();
     }, []);
+
 
     const openConfirmationDialog = (user) => {
         setUserToDelete(user);
@@ -122,6 +135,7 @@ const UserManagement = () => {
             <h2>Διαχείριση Χρηστών</h2>
             {error && <p className="error-message">{error}</p>}
 
+            {loggedInUserRole === "SUPER_ADMIN" &&
                 <div className="user-create-form">
                     <input
                         type="text"
@@ -186,6 +200,7 @@ const UserManagement = () => {
                         </button>
                     </div>
                 </div>
+            })
 
 
             <table className="user-table">
