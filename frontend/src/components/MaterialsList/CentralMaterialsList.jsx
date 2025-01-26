@@ -23,14 +23,19 @@ const CentralMaterialsList = () => {
     const [error, setError] = useState("");
 
 
-    // Fetch user role
     useEffect(() => {
         const loadUserDetails = async () => {
             try {
                 const userDetails = await fetchUserDetails();
                 const roles = userDetails.roles.map((role) => role.name);
+
+                // Check and set the user's role
                 if (roles.includes("SUPER_ADMIN")) {
                     setLoggedInUserRole("SUPER_ADMIN");
+                } else if (roles.includes("LOCAL_ADMIN")) {
+                    setLoggedInUserRole("LOCAL_ADMIN");
+                } else {
+                    console.error("Unrecognized role");
                 }
             } catch (err) {
                 console.error("Failed to fetch user details", err);
@@ -39,7 +44,7 @@ const CentralMaterialsList = () => {
         loadUserDetails();
     }, []);
 
-    // Fetch materials, sizes, and stores
+
     const loadMaterials = useCallback(async () => {
         try {
             const response = await fetchAllMaterialsPaginated(currentPage, 5, filterText, filterSize);
@@ -77,8 +82,12 @@ const CentralMaterialsList = () => {
         loadStores();
     }, [loadMaterials, loadSizes, loadStores]);
 
-    // Edit handlers
+
     const handleEditClick = (material) => {
+        if (loggedInUserRole !== "SUPER_ADMIN") {
+            toast.error("Δεν έχετε δικαίωμα να επεξεργαστείτε προϊόντα.");
+            return;
+        }
         setEditingMaterial(material);
         setEditFormData({
             text: material.text,
@@ -88,6 +97,10 @@ const CentralMaterialsList = () => {
     };
 
     const handleSaveEdit = async () => {
+        if (loggedInUserRole !== "SUPER_ADMIN") {
+            toast.error("Δεν έχετε δικαίωμα να αποθηκεύσετε αλλαγές.");
+            return;
+        }
         try {
             await editMaterial(editingMaterial.id, editFormData);
             setEditingMaterial(null);
@@ -99,7 +112,7 @@ const CentralMaterialsList = () => {
         }
     };
 
-    // Delete handlers
+
     const openConfirmationDialog = (material) => {
         setMaterialToDelete(material);
         setShowConfirmation(true);
@@ -111,6 +124,10 @@ const CentralMaterialsList = () => {
     };
 
     const confirmDelete = async () => {
+        if (loggedInUserRole !== "SUPER_ADMIN") {
+            toast.error("Δεν έχετε δικαίωμα να διαγράψετε προϊόντα.");
+            return;
+        }
         try {
             await deleteMaterial(materialToDelete.id);
             setMaterials(materials.filter((m) => m.id !== materialToDelete.id));
@@ -179,7 +196,7 @@ const CentralMaterialsList = () => {
                             <td>{getStoreTitle(material.storeId)}</td> {/* Get store title instead of ID */}
 
                             <td>
-                                {loggedInUserRole === "SUPER_ADMIN" && (
+
                                     <>
                                         <button
                                             className="view-button"
@@ -194,7 +211,7 @@ const CentralMaterialsList = () => {
                                             Διαγραφή
                                         </button>
                                     </>
-                                )}
+
                             </td>
                         </tr>
                     ))
