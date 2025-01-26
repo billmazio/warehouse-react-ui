@@ -78,17 +78,26 @@ const StoreManagement = () => {
         setShowConfirmation(false);
         setStoreToDelete(null);
     };
-
+    
     const confirmDelete = async () => {
         try {
             await deleteStore(storeToDelete.id);
             setStores(stores.filter((store) => store.id !== storeToDelete.id));
             toast.success(`Η αποθήκη "${storeToDelete.title}" διαγράφηκε επιτυχώς.`);
         } catch (err) {
-            if (err.response && err.response.status === 403) {
-                toast.error("Δεν έχετε δικαίωμα να διαγράψετε αποθήκες.");
+            if (err.response) {
+                if (err.response.status === 403) {
+                    toast.error("Δεν έχετε δικαίωμα να διαγράψετε αποθήκες.");
+                } else if (err.response.status === 404) {
+                    toast.error("Η αποθήκη δεν βρέθηκε.");
+                } else if (err.response.status === 409) {
+                    toast.error(err.response.data.message); // Display specific backend message
+                } else {
+                    toast.error("Παρουσιάστηκε σφάλμα κατά τη διαγραφή της αποθήκης.");
+                }
             } else {
-                toast.error(`Αποτυχία διαγραφής αποθήκης "${storeToDelete.title}".`);
+                console.error("Error deleting store:", err);
+                toast.error("Παρουσιάστηκε σφάλμα κατά τη διαγραφή της αποθήκης.");
             }
         } finally {
             closeConfirmationDialog();
