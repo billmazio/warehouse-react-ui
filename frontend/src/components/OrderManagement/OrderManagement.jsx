@@ -19,7 +19,6 @@ import "./OrderManagement.css";
 const OrderManagement = () => {
     const navigate = useNavigate();
     const [stores, setStores] = useState([]);
-    const [loggedInUserRole, setLoggedInUserRole] = useState("");
     const [users, setUsers] = useState([]);
     const [materials, setMaterials] = useState([]);
     const [sizes, setSizes] = useState([]);
@@ -42,32 +41,38 @@ const OrderManagement = () => {
 
     const loadData = async (page = 0, size = 5) => {
         try {
-            const [storeData, userData, materialData, sizeData, loggedInUser, orderData] = await Promise.all([
+            const [storeData, userData, materialData, sizeData, loggedInUser] = await Promise.all([
                 fetchStores(),
                 fetchUsers(),
                 fetchMaterials(),
                 fetchSizes(),
                 fetchUserDetails(),
-                fetchOrders(page, size, null, null, "", ""), // Adjust filters as needed
             ]);
 
             setStores(storeData);
             setUsers(userData);
             setMaterials(materialData);
             setSizes(sizeData);
-            setOrders(orderData.content || []); // Ensure orders is always an array
-            setTotalPages(orderData.totalPages || 0);
 
-            const roles = loggedInUser.roles.map((role) => role.name);
-            if (roles.includes('SUPER_ADMIN')) {
-                setLoggedInUserRole('SUPER_ADMIN');
+
+            const userRoles = loggedInUser.roles.map((role) => role.name);
+            if (userRoles.includes("SUPER_ADMIN")) {
+
+                const orderData = await fetchOrders(page, size, null, null, "", "");
+                setOrders(orderData.content || []);
+                setTotalPages(orderData.totalPages || 0);
+            } else if (userRoles.includes("LOCAL_ADMIN")) {
+                const userStoreId = loggedInUser.store.id;
+                const orderData = await fetchOrders(page, size, userStoreId, null, "", "");
+                setOrders(orderData.content || []);
+                setTotalPages(orderData.totalPages || 0);
             }
-
         } catch (err) {
             console.error("Error fetching data:", err);
             toast.error("Αποτυχία φόρτωσης δεδομένων.");
         }
     };
+
 
 
     useEffect(() => {
@@ -343,7 +348,7 @@ const OrderManagement = () => {
                         <td>{order.userName}</td>
                         <td>{order.status === 1 ? "Σε Εκκρεμότητα" : order.status === 2 ? "Ολοκληρωμένη" : "Ακυρωμένη"}</td>
                         <td>
-                            {loggedInUserRole === "SUPER_ADMIN" && (
+
                             <div className="order-action-buttons">
                                 <button className="order-edit-button"
                                         onClick={() => handleEditButtonClick(order.id)}>Επεξεργασία
@@ -372,7 +377,7 @@ const OrderManagement = () => {
                                     </div>
                                 )}
                             </div>
-                            )}
+
                         </td>
                     </tr>
                 ))}

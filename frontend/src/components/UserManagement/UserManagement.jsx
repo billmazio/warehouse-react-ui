@@ -200,7 +200,7 @@ const UserManagement = () => {
                         </button>
                     </div>
                 </div>
-            })
+            }
 
 
             <table className="user-table">
