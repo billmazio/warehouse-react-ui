@@ -78,7 +78,7 @@ const StoreManagement = () => {
         setShowConfirmation(false);
         setStoreToDelete(null);
     };
-    
+
     const confirmDelete = async () => {
         try {
             await deleteStore(storeToDelete.id);

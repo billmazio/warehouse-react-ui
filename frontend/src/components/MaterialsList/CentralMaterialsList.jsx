@@ -124,21 +124,38 @@ const CentralMaterialsList = () => {
     };
 
     const confirmDelete = async () => {
-        if (loggedInUserRole !== "SUPER_ADMIN") {
-            toast.error("Δεν έχετε δικαίωμα να διαγράψετε προϊόντα.");
-            return;
-        }
         try {
             await deleteMaterial(materialToDelete.id);
             setMaterials(materials.filter((m) => m.id !== materialToDelete.id));
             toast.success("Το προϊόν διαγράφηκε επιτυχώς!");
         } catch (err) {
             console.error("Αποτυχία διαγραφής προϊόντος", err);
-            toast.error("Αποτυχία διαγραφής προϊόντος.");
+
+            if (err.response) {
+                if (err.response.status === 403) {
+                    // When the user does not have the permission to delete the material
+                    toast.error("Δεν έχετε δικαίωμα να διαγράψετε προϊόντα.");
+                } else if (err.response.status === 409) {
+                    // Backend should return 409 (Conflict) if there are associated orders
+                    toast.error(
+                        "Δεν είναι δυνατή η διαγραφή του προϊόντος, καθώς υπάρχουν σχετικές παραγγελίες."
+                    );
+                } else if (err.response.status === 404) {
+                    // Material not found
+                    toast.error("Το προϊόν δεν βρέθηκε.");
+                } else {
+                    // General error
+                    toast.error("Αποτυχία διαγραφής προϊόντος.");
+                }
+            } else {
+                // Network or other error
+                toast.error("Παρουσιάστηκε σφάλμα κατά τη διαγραφή του προϊόντος.");
+            }
         } finally {
             closeConfirmationDialog();
         }
     };
+
 
     const getStoreTitle = (storeId) => {
         const store = stores.find(store => store.id === storeId);
