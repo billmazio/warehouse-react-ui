@@ -51,14 +51,15 @@ const StoreManagement = () => {
                 ]);
                 setStores(storeData);
                 setMaterials(materialsData);
-
                 const roles = loggedInUser.roles.map((role) => role.name);
-                if (roles.includes('SUPER_ADMIN')) {
-                    setLoggedInUserRole('SUPER_ADMIN');
+                if (roles.includes("SUPER_ADMIN")) {
+                    setLoggedInUserRole("SUPER_ADMIN");
+                } else if (roles.includes("LOCAL_ADMIN")) {
+                    setLoggedInUserRole("LOCAL_ADMIN");
                 }
             } catch (err) {
-                setError('Failed to fetch data.');
-                console.error('Error:', err);
+                setError("Failed to fetch data.");
+                console.error("Error:", err);
             }
         };
 
@@ -84,10 +85,11 @@ const StoreManagement = () => {
             setStores(stores.filter((store) => store.id !== storeToDelete.id));
             toast.success(`Η αποθήκη "${storeToDelete.title}" διαγράφηκε επιτυχώς.`);
         } catch (err) {
-            console.error("Error deleting store:", err);
-            toast.error(
-                `Δεν μπορείτε να διαγράψετε την αποθήκη "${storeToDelete.title}" επειδή περιέχει συνδεδεμένα δεδομένα.`
-            );
+            if (err.response && err.response.status === 403) {
+                toast.error("Δεν έχετε δικαίωμα να διαγράψετε αποθήκες.");
+            } else {
+                toast.error(`Αποτυχία διαγραφής αποθήκης "${storeToDelete.title}".`);
+            }
         } finally {
             closeConfirmationDialog();
         }
@@ -106,17 +108,15 @@ const StoreManagement = () => {
             toast.success("Η αποθήκη ενημερώθηκε επιτυχώς!");
             setEditingStore(null);
         } catch (err) {
-            console.error("Error updating store:", err);
-            toast.error("Αποτυχία ενημέρωσης αποθήκης.");
+            if (err.response && err.response.status === 403) {
+                toast.error("Δεν έχετε δικαίωμα να επεξεργαστείτε αποθήκες.");
+            } else {
+                toast.error("Αποτυχία ενημέρωσης αποθήκης.");
+            }
         }
     };
 
     const handleCreate = async () => {
-        if (loggedInUserRole !== "SUPER_ADMIN") {
-            toast.warning("You are not authorized to create stores.");
-            return;
-        }
-
         if (!newStore.title.trim() || !newStore.address.trim()) {
             toast.warning("Ο Τίτλος και η Διεύθυνση είναι απαραίτητα.");
             return;
@@ -128,49 +128,41 @@ const StoreManagement = () => {
             setNewStore({ title: "", address: "", enable: 1 });
             toast.success("Η αποθήκη δημιουργήθηκε επιτυχώς.");
         } catch (err) {
-            console.error("Error creating store:", err);
-            toast.error("Αποτυχία δημιουργίας αποθήκης.");
+            if (err.response && err.response.status === 403) {
+                toast.error("Δεν έχετε δικαίωμα να δημιουργήσετε αποθήκες.");
+            } else {
+                toast.error("Αποτυχία δημιουργίας αποθήκης.");
+            }
         }
     };
 
-
     const handleDistributeMaterial = async () => {
         try {
-            // Validate required fields
             if (
                 !distributionData.materialId ||
                 !distributionData.receiverStoreId ||
                 !distributionData.quantity
             ) {
-                toast.error('Παρακαλώ συμπληρώστε όλα τα απαιτούμενα πεδία.');
+                toast.error("Παρακαλώ συμπληρώστε όλα τα απαιτούμενα πεδία.");
                 return;
             }
 
-            // Prepare the payload
             const payload = {
                 materialId: distributionData.materialId,
                 receiverStoreId: distributionData.receiverStoreId,
                 quantity: distributionData.quantity,
-                materialType: distributionData.materialType || null,
-                size: distributionData.size || null,
             };
 
             await distributeMaterial(payload);
-
-            toast.success('Το υλικό μεταφέρθηκε επιτυχώς!');
+            toast.success("Το υλικό μεταφέρθηκε επιτυχώς!");
             setShowDistributionForm(false);
-
-            // Reset the distribution data
-            setDistributionData({
-                materialId: '',
-                materialType: '',
-                size: '',
-                receiverStoreId: '',
-                quantity: 0,
-            });
+            setDistributionData({ materialId: "", receiverStoreId: "", quantity: 0 });
         } catch (error) {
-            console.error('Error distributing material:', error);
-            toast.error('Αποτυχία μεταφοράς υλικού.');
+            if (error.response && error.response.status === 403) {
+                toast.error("Δεν έχετε δικαίωμα να μεταφέρετε υλικά.");
+            } else {
+                toast.error("Αποτυχία μεταφοράς υλικού.");
+            }
         }
     };
 
@@ -255,7 +247,6 @@ const StoreManagement = () => {
                         <td>{store.address}</td>
                         <td>{store.enable === 1 ? "Active" : "Inactive"}</td>
                         <td>
-                            {loggedInUserRole === "SUPER_ADMIN" && (
                                 <div>
                                     <button
                                         className="edit-button"
@@ -287,7 +278,6 @@ const StoreManagement = () => {
                                         Διαγραφή
                                     </button>
                                 </div>
-                            )}
                         </td>
                     </tr>
                 ))}
