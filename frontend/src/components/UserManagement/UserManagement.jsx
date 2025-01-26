@@ -77,22 +77,29 @@ const UserManagement = () => {
             toast.success(`Ο χρήστης "${userToDelete.username}" διαγράφηκε επιτυχώς.`);
         } catch (err) {
             if (err.response) {
-                if (err.response.status === 403) {
-                    // Display the correct warning message for unauthorized access
-                    toast.error("Δεν έχετε δικαίωμα να διαγράψετε χρήστες.");
-                } else if (err.response.status === 404) {
-                    toast.error("Ο χρήστης δεν βρέθηκε.");
-                } else {
-                    toast.error("Παρουσιάστηκε σφάλμα κατά τη διαγραφή του χρήστη.");
+                switch (err.response.status) {
+                    case 403:
+                        toast.error("Δεν μπορείτε να διαγράψετε χρήστες με ρόλο SUPER_ADMIN.");
+                        break;
+                    case 409:
+                        toast.error("Ο χρήστης δεν μπορεί να διαγραφεί επειδή υπάρχουν συνδεδεμένα δεδομένα στην αποθήκη.");
+                        break;
+                    case 404:
+                        toast.error("Ο χρήστης δεν βρέθηκε.");
+                        break;
+                    default:
+                        toast.error("Παρουσιάστηκε σφάλμα κατά τη διαγραφή του χρήστη.");
+                        break;
                 }
             } else {
                 console.error("Error deleting user:", err);
                 toast.error("Παρουσιάστηκε σφάλμα κατά τη διαγραφή του χρήστη.");
             }
+        } finally {
+            closeConfirmationDialog();
         }
-
-        closeConfirmationDialog();
     };
+
 
     const handleCreate = async () => {
         if (!newUser.username.trim() || !newUser.password.trim() || !newUser.storeId) {
