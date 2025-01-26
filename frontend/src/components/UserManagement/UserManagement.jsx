@@ -69,27 +69,22 @@ const UserManagement = () => {
     };
 
     const confirmDelete = async () => {
-        if (!userToDelete) return;
-
         try {
             await deleteUser(userToDelete.id);
             setUsers(users.filter((user) => user.id !== userToDelete.id));
             toast.success(`Ο χρήστης "${userToDelete.username}" διαγράφηκε επιτυχώς.`);
         } catch (err) {
             if (err.response) {
-                switch (err.response.status) {
-                    case 403:
-                        toast.error("Δεν μπορείτε να διαγράψετε χρήστες με ρόλο SUPER_ADMIN.");
-                        break;
-                    case 409:
-                        toast.error("Ο χρήστης δεν μπορεί να διαγραφεί επειδή υπάρχουν συνδεδεμένα δεδομένα στην αποθήκη.");
-                        break;
-                    case 404:
-                        toast.error("Ο χρήστης δεν βρέθηκε.");
-                        break;
-                    default:
-                        toast.error("Παρουσιάστηκε σφάλμα κατά τη διαγραφή του χρήστη.");
-                        break;
+                const errorMessage = err.response.data.message;
+
+                if (err.response.status === 403) {
+                    toast.error(errorMessage); // Handles both SUPER_ADMIN and unauthorized deletion
+                } else if (err.response.status === 409) {
+                    toast.error("Υπάρχουν συνδεδεμένα δεδομένα."); // Handles associated data issue
+                } else if (err.response.status === 404) {
+                    toast.error("Ο χρήστης δεν βρέθηκε.");
+                } else {
+                    toast.error("Παρουσιάστηκε σφάλμα κατά τη διαγραφή του χρήστη.");
                 }
             } else {
                 console.error("Error deleting user:", err);
@@ -99,6 +94,8 @@ const UserManagement = () => {
             closeConfirmationDialog();
         }
     };
+
+
 
 
     const handleCreate = async () => {
