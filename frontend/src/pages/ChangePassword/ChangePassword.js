@@ -34,11 +34,10 @@ const ChangePassword = () => {
     };
 
     const handleCancel = (e) => {
-        e.preventDefault(); // Prevent default form behavior
-        setCurrentPassword("");
+        e.preventDefault();
         setNewPassword("");
         setConfirmPassword("");
-        setMessage(""); // Clear any error or success message
+        setMessage("");
     };
 
     return (
