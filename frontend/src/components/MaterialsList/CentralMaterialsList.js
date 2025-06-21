@@ -4,6 +4,7 @@ import { fetchAllMaterialsPaginated, fetchSizes, deleteMaterial, editMaterial, f
 import "./MaterialsList.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import AddMaterialModal from "./AddMaterialModal"; // Import the new modal component
 
 const CentralMaterialsList = () => {
     const navigate = useNavigate();
@@ -20,6 +21,8 @@ const CentralMaterialsList = () => {
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [materialToDelete, setMaterialToDelete] = useState(null);
     const [loggedInUserRole, setLoggedInUserRole] = useState("");
+    const [userStoreId, setUserStoreId] = useState(null); // Store ID for LOCAL_ADMIN
+    const [showAddModal, setShowAddModal] = useState(false); // State for showing add modal
     const [error, setError] = useState("");
 
 
@@ -34,6 +37,10 @@ const CentralMaterialsList = () => {
                     setLoggedInUserRole("SUPER_ADMIN");
                 } else if (roles.includes("LOCAL_ADMIN")) {
                     setLoggedInUserRole("LOCAL_ADMIN");
+                    // Set user's store ID if they are LOCAL_ADMIN
+                    if (userDetails.store && userDetails.store.id) {
+                        setUserStoreId(userDetails.store.id);
+                    }
                 } else {
                     console.error("Unrecognized role");
                 }
@@ -190,6 +197,15 @@ const CentralMaterialsList = () => {
                 <button className="create-button" onClick={loadMaterials}>
                     Φιλτράρισμα
                 </button>
+
+                {/* Add Material Button */}
+                <button
+                    className="create-button"
+                    style={{ backgroundColor: "#28a745", marginLeft: "10px" }}
+                    onClick={() => setShowAddModal(true)}
+                >
+                    Προσθήκη Νέου Ενδύματος
+                </button>
             </div>
 
             {/* Materials Table */}
@@ -214,27 +230,27 @@ const CentralMaterialsList = () => {
 
                             <td>
 
-                                    <>
-                                        <button
-                                            className="view-button"
-                                            onClick={() => handleEditClick(material)}
-                                        >
-                                            Επεξεργασία
-                                        </button>
-                                        <button
-                                            className="delete-button"
-                                            onClick={() => openConfirmationDialog(material)}
-                                        >
-                                            Διαγραφή
-                                        </button>
-                                    </>
+                                <>
+                                    <button
+                                        className="view-button"
+                                        onClick={() => handleEditClick(material)}
+                                    >
+                                        Επεξεργασία
+                                    </button>
+                                    <button
+                                        className="delete-button"
+                                        onClick={() => openConfirmationDialog(material)}
+                                    >
+                                        Διαγραφή
+                                    </button>
+                                </>
 
                             </td>
                         </tr>
                     ))
                 ) : (
                     <tr>
-                        <td colSpan="4">Δεν υπάρχουν διαθέσιμα προϊόντα.</td>
+                        <td colSpan="5">Δεν υπάρχουν διαθέσιμα προϊόντα.</td>
                     </tr>
                 )}
                 </tbody>
@@ -250,8 +266,8 @@ const CentralMaterialsList = () => {
                     Προηγούμενη
                 </button>
                 <span>
-        Σελίδα {currentPage + 1} από {totalPages}
-    </span>
+                    Σελίδα {currentPage + 1} από {totalPages}
+                </span>
                 <button
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))}
                     disabled={currentPage >= totalPages - 1}
@@ -260,7 +276,6 @@ const CentralMaterialsList = () => {
                     Επόμενη
                 </button>
             </div>
-
 
             {/* Edit Modal */}
             {editingMaterial && (
@@ -334,6 +349,13 @@ const CentralMaterialsList = () => {
                 </div>
             )}
 
+            <AddMaterialModal
+                show={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                userRole={loggedInUserRole}
+                userStoreId={userStoreId}
+                onMaterialAdded={loadMaterials}
+            />
         </div>
     );
 };

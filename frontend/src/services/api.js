@@ -297,6 +297,17 @@ export const deleteOrder = async (id) => {
 };
 
 
+export const createMaterial = async (materialData) => {
+    try {
+        const response = await api.post('/api/materials', materialData);
+        return response.data;
+    } catch (error) {
+        console.error('Error creating material:', error);
+        throw error;
+    }
+};
+
+
 // Logout
 /*export const logout = async () => {
     try {
