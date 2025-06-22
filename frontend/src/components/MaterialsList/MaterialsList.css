@@ -1,20 +1,38 @@
 .materials-list-container {
     margin: 20px auto;
-    max-width: 600px;
+    max-width: 100%; /* Changed from fixed 600px */
     padding: 20px;
     border: 1px solid #ddd;
     border-radius: 4px;
     background-color: #f9f9f9;
+    box-sizing: border-box;
 }
-.materials-management-container{
+
+.materials-management-container {
     padding: 20px;
     background-color: #f4f4f9;
     border-radius: 4px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.materials-create-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+    align-items: center;
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .materials-create-form input,
-.materials-create-form select{
+.materials-create-form select {
     font-size: 14px;
     padding: 10px;
     border-radius: 4px;
@@ -28,7 +46,23 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    box-sizing: border-box;
 }
+
+.materials-create-form input:focus,
+.materials-create-form select:focus {
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+    border-color: #007bff;
+}
+
+/* Table container with horizontal scroll for small screens */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+}
+
 .materials-table {
     width: 100%;
     border-collapse: separate;
@@ -37,16 +71,6 @@
     overflow: hidden;
     background-color: #fff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-
-}
-
-.materials-table th,
-.materials-table td {
-    padding: 12px;
-    text-align: center;
-    border-bottom: 1px solid #ddd;
-    color: #333;
-
 }
 
 .materials-table th {
@@ -57,22 +81,34 @@
     text-align: center;
     border-right: 1px solid #ddd;
 }
+
 .materials-table th:last-child {
     border-right: none;
 }
 
-.materials-table td button {
-    margin-right: 10px;
+.materials-table td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    color: #333;
 }
 
 .materials-table tr:hover {
     background-color: #f0f0f0;
 }
 
+.materials-table td button {
+    margin-right: 10px;
+}
+
+/* Filter controls */
 .store-filters {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .store-filters input {
@@ -80,8 +116,8 @@
     border-radius: 4px;
     padding: 10px;
     border: 1px solid #ccc;
-
-
+    min-width: 120px;
+    box-sizing: border-box;
 }
 
 .store-filters button {
@@ -91,6 +127,7 @@
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .store-filters select {
@@ -100,13 +137,16 @@
     border: 1px solid #ccc;
     outline: none;
     color: #333;
+    min-width: 120px;
+    box-sizing: border-box;
 }
 
-
-
+/* Lists */
 ul {
     list-style-type: none;
     padding: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 ul li {
@@ -114,7 +154,11 @@ ul li {
     border: 1px solid #ccc;
     margin-bottom: 10px;
     border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
 }
+
+/* Button styles */
 .back-button {
     background-color: #007bff;
     color: white;
@@ -123,16 +167,22 @@ ul li {
     border-radius: 4px;
     cursor: pointer;
     margin-bottom: 20px;
+    white-space: nowrap;
 }
 
 .back-button:hover {
     background-color: #0056b3;
 }
+
+/* Pagination */
 .pagination {
     display: flex;
     justify-content: center;
     margin-top: 20px;
     gap: 10px;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .pagination button {
@@ -160,6 +210,8 @@ ul li {
     font-weight: bold;
     color: #2c3e50;
 }
+
+/* Form elements */
 .add-material-form input,
 .add-material-form select,
 .add-material-form button {
@@ -170,26 +222,8 @@ ul li {
     font-size: 1rem;
     border: 1px solid #ccc;
     border-radius: 4px;
+    box-sizing: border-box;
 }
-
-.materials-create-form input:focus,
-.materials-create-form select:focus {
-    box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
-    border-color: #007bff;
-}
-
-.materials-create-form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-bottom: 20px;
-    align-items: center;
-    background: #ffffff;
-    padding: 15px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
 
 .add-material-form button {
     background-color: #28a745;
@@ -200,12 +234,19 @@ ul li {
 .add-material-form button:hover {
     background-color: #218838;
 }
+
 .delete-button:hover,
 .cancel-button:hover,
 .confirm-button:hover {
     background-color: #dc3545;
 }
 
+/* Confirmation actions */
+.materials-confirmation-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
 
 .materials-confirmation-actions .materials-cancel-button,
 .materials-confirmation-actions .materials-confirm-button {
@@ -238,85 +279,7 @@ ul li {
     transform: scale(1.05);
 }
 
-
-
-.edit-modal-materials {
-    background-color: #fff;
-    border-radius: 4px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1000;
-    width: 400px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.edit-modal-materials h3 {
-    margin-bottom: 15px;
-    text-align: center;
-    color: #2c3e50;
-    font-size: 1.2rem;
-}
-
-.edit-modal-materials input,
-.edit-modal-materials select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box;
-    font-size: 1rem;
-    outline: none;
-    transition: border-color 0.3s ease;
-}
-
-.edit-modal-materials input:focus,
-.edit-modal-materials select:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-}
-
-.edit-modal-materials .button-group {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    margin-top: 15px;
-}
-
-.edit-modal-materials button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    color: #fff;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s;
-}
-
-.edit-modal-materials .cancel-button {
-    background-color: #dc3545;
-}
-
-.edit-modal-materials .cancel-button:hover {
-    background-color: #c82333;
-    transform: scale(1.05);
-}
-
-.edit-modal-materials .save-button {
-    background-color: #28a745;
-}
-
-.edit-modal-materials .save-button:hover {
-    background-color: #218838;
-    transform: scale(1.05);
-}
-
+/* Modal styles */
 .edit-modal-materials,
 .confirmation-dialog {
     background-color: #fff;
@@ -328,10 +291,12 @@ ul li {
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 1000;
-    width: 400px;
+    width: 90%;
+    max-width: 400px;
     display: flex;
     flex-direction: column;
     gap: 15px;
+    box-sizing: border-box;
 }
 
 .edit-modal-materials h3,
@@ -360,15 +325,15 @@ ul li {
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
-
-
+.edit-modal-materials .button-group,
 .materials-button-group {
     display: flex;
     justify-content: center;
     gap: 20px;
-    margin-top: 10px;
+    margin-top: 15px;
 }
 
+.edit-modal-materials button,
 .materials-cancel-button,
 .materials-confirm-button {
     padding: 10px 20px;
@@ -380,22 +345,174 @@ ul li {
     transition: background-color 0.3s ease, transform 0.2s;
 }
 
+.edit-modal-materials .cancel-button,
 .materials-cancel-button {
     background-color: #dc3545;
 }
 
+.edit-modal-materials .cancel-button:hover,
 .materials-cancel-button:hover {
     background-color: #c82333;
     transform: scale(1.05);
 }
 
+.edit-modal-materials .save-button,
 .materials-confirm-button {
     background-color: #28a745;
 }
 
+.edit-modal-materials .save-button:hover,
 .materials-confirm-button:hover {
     background-color: #218838;
     transform: scale(1.05);
 }
 
+/* Media Queries */
+@media (max-width: 767px) {
+    /* Container adjustments */
+    .materials-list-container {
+        padding: 15px;
+        margin: 10px auto;
+    }
 
+    /* Form adjustments */
+    .materials-create-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .materials-create-form input,
+    .materials-create-form select,
+    .store-filters input,
+    .store-filters select,
+    .store-filters button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    /* Filter adjustments */
+    .store-filters {
+        flex-direction: column;
+    }
+
+    /* Transform tables for mobile view */
+    .materials-table,
+    .materials-table tbody,
+    .materials-table tr {
+        display: block;
+        width: 100%;
+    }
+
+    .materials-table thead {
+        display: none; /* Hide table headers on mobile */
+    }
+
+    .materials-table tr {
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .materials-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: right;
+        padding: 8px 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .materials-table td:last-child {
+        border-bottom: none;
+    }
+
+    /* Add labels for mobile view */
+    .materials-table td:before {
+        content: attr(data-label);
+        font-weight: bold;
+        text-align: left;
+        margin-right: 5px;
+    }
+
+    /* Button adjustments for mobile */
+    .materials-table td button {
+        margin: 5px;
+    }
+
+    /* Stack buttons in action cells */
+    .materials-table td:last-child {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .materials-table td:last-child button {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    /* Modal adjustments */
+    .edit-modal-materials,
+    .confirmation-dialog {
+        width: 95%;
+        padding: 15px;
+    }
+
+    /* Button group adjustments */
+    .edit-modal-materials .button-group,
+    .materials-button-group,
+    .materials-confirmation-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .edit-modal-materials .button-group button,
+    .materials-button-group button,
+    .materials-confirmation-actions button,
+    .materials-confirmation-actions .materials-cancel-button,
+    .materials-confirmation-actions .materials-confirm-button {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    .materials-confirmation-actions .materials-cancel-button {
+        margin-right: 0;
+    }
+}
+
+/* Medium devices (tablets) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .materials-list-container {
+        max-width: 90%;
+    }
+
+    .materials-create-form {
+        justify-content: space-between;
+    }
+
+    .materials-create-form input,
+    .materials-create-form select {
+        flex: 0 0 calc(50% - 10px);
+    }
+
+    .edit-modal-materials,
+    .confirmation-dialog {
+        width: 80%;
+    }
+}
+
+/* Large devices (desktops) */
+@media (min-width: 992px) {
+    .materials-list-container {
+        max-width: 80%;
+    }
+
+    .materials-management-container {
+        padding: 30px;
+    }
+
+    .materials-create-form {
+        padding: 20px;
+    }
+}

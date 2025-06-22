@@ -3,6 +3,8 @@
     background-color: #f4f4f9;
     border-radius: 4px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .order-create-form {
@@ -15,6 +17,8 @@
     padding: 15px;
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .order-create-form input,
@@ -24,12 +28,15 @@
     border-radius: 4px;
     border: 1px solid #ccc;
     outline: none;
-    background-color: #ffffff;
-    color: #333;
     transition: box-shadow 0.3s ease;
+    color: #333;
     max-width: 100%;
-    width: 80px;
+    width: 300px;
     flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
 }
 
 .order-create-form input:focus,
@@ -38,7 +45,12 @@
     border-color: #007bff;
 }
 
-.order-create-form button {
+.order-create-form button:hover {
+    background: #218838;
+}
+
+/* Button styles */
+.create-button {
     background-color: #28a745;
     color: white;
     padding: 10px 20px;
@@ -46,28 +58,51 @@
     border: none;
     cursor: pointer;
     font-size: 14px;
+    white-space: nowrap;
 }
 
-.cancel-button {
-    background-color: #dc3545 !important;
-    color: #fff !important;
+.delete-button,
+.cancel-button,
+.confirm-button {
+    background-color: #dc3545;
+    color: white;
+    padding: 10px 20px;
     border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    white-space: nowrap;
 }
 
-.order-create-form button:hover {
-    background: #218838;
+.view-button,
+.edit-button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    white-space: nowrap;
 }
 
+.delete-button:hover,
+.cancel-button:hover,
+.confirm-button:hover {
+    background-color: #dc3545;
+}
+
+/* Table containers with horizontal scroll for small screens */
 .table-container {
-    margin: 20px auto;
-    border-radius: 4px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 1px solid #ddd;
-    background-color: #ffffff;
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 20px;
+    box-sizing: border-box;
 }
 
-.order-table {
+/* Order tables */
+.order-table,
+.orders-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
@@ -77,7 +112,8 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.order-table th {
+.order-table th,
+.orders-table th {
     background-color: #007bff;
     color: #fff;
     padding: 10px;
@@ -86,69 +122,35 @@
     border-right: 1px solid #ddd;
 }
 
-.order-table th:last-child {
+.order-table th:last-child,
+.orders-table th:last-child {
     border-right: none;
 }
 
-.order-table td {
+.order-table td,
+.orders-table td {
     padding: 10px;
     text-align: center;
     border-bottom: 1px solid #ddd;
     color: #333;
 }
 
-.order-table tr:last-child td {
+.order-table tr:last-child td,
+.orders-table tr:last-child td {
     border-bottom: none;
 }
 
-.order-table tr:hover {
+.order-table tr:hover,
+.orders-table tr:hover {
     background-color: #f0f0f0;
 }
 
-.order-action-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
+.order-table td button,
+.orders-table td button {
+    margin-right: 10px;
 }
 
-.order-edit-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 10px 20px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s;
-}
-
-
-
-.order-delete-button {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 10px 20px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s;
-}
-
-
-
-
-.toast-container {
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-}
-
-h2 {
-    text-align: center;
-    color: #2c3e50;
-    margin-bottom: 20px;
-}
-
+/* Button groups */
 .order-button-group {
     display: flex;
     justify-content: center;
@@ -184,6 +186,245 @@ h2 {
     background-color: #218838;
     transform: scale(1.05);
 }
+
+/* Modals */
+.edit-modal-order,
+.status-modal {
+    background-color: #fff;
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    width: 90%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    box-sizing: border-box;
+}
+
+.edit-modal-order h3,
+.status-modal h3 {
+    margin-bottom: 15px;
+    text-align: center;
+    color: #2c3e50;
+    font-size: 1.2rem;
+}
+
+.edit-modal-order input,
+.edit-modal-order select,
+.status-modal input,
+.status-modal select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.edit-modal-order input:focus,
+.edit-modal-order select:focus,
+.status-modal input:focus,
+.status-modal select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.edit-modal-order button,
+.status-modal button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease, transform 0.2s;
+}
+
+.edit-modal-order .save-button,
+.status-modal .update-button {
+    background-color: #28a745;
+}
+
+.edit-modal-order .save-button:hover,
+.status-modal .update-button:hover {
+    background-color: #218838;
+    transform: scale(1.05);
+}
+
+.edit-modal-order .cancel-button,
+.status-modal .cancel-button {
+    background-color: #dc3545;
+}
+
+.edit-modal-order .cancel-button:hover,
+.status-modal .cancel-button:hover {
+    background-color: #c82333;
+    transform: scale(1.05);
+}
+
+.button-container,
+.edit-modal-order .button-group {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.edit-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+/* Order action buttons */
+.order-action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.order-edit-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s;
+    white-space: nowrap;
+}
+
+.order-delete-button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s;
+    white-space: nowrap;
+}
+
+/* Checkbox styling */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.checkbox-container label {
+    font-size: 1rem;
+    color: #333;
+}
+
+.checkbox-container input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+/* Status update button */
+.order-create-form .status-button {
+    background-color: #17a2b8;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    white-space: nowrap;
+}
+
+.order-create-form .status-button:hover {
+    background-color: #138496;
+}
+
+/* Status badges */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.status-processing {
+    background-color: #cce5ff;
+    color: #004085;
+    border: 1px solid #b3d9ff;
+}
+
+.status-shipped {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-delivered {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Priority badges */
+.priority-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.priority-low {
+    background-color: #e2e3e5;
+    color: #383d41;
+    border: 1px solid #d6d8db;
+}
+
+.priority-normal {
+    background-color: #cce5ff;
+    color: #004085;
+    border: 1px solid #b3d9ff;
+}
+
+.priority-high {
+    background-color: #ffeaa7;
+    color: #856404;
+    border: 1px solid #fdcb6e;
+}
+
+.priority-urgent {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Pagination controls */
 .pagination-controls {
     display: flex;
     justify-content: center;
@@ -191,6 +432,7 @@ h2 {
     margin-top: 20px;
     gap: 10px;
     font-size: 16px;
+    flex-wrap: wrap;
 }
 
 .pagination-controls button {
@@ -216,4 +458,184 @@ h2 {
 .pagination-controls span {
     font-weight: bold;
     color: #333;
+}
+
+.toast-container {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+}
+
+h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 767px) {
+    /* Form adjustments */
+    .order-create-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .order-create-form input,
+    .order-create-form select,
+    .order-create-form button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    /* Transform tables for mobile view */
+    .order-table,
+    .orders-table,
+    .order-table tbody,
+    .orders-table tbody,
+    .order-table tr,
+    .orders-table tr {
+        display: block;
+        width: 100%;
+    }
+
+    .order-table thead,
+    .orders-table thead {
+        display: none; /* Hide table headers on mobile */
+    }
+
+    .order-table tr,
+    .orders-table tr {
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .order-table td,
+    .orders-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: right;
+        padding: 8px 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .order-table td:last-child,
+    .orders-table td:last-child {
+        border-bottom: none;
+    }
+
+    /* Add labels for mobile view */
+    .order-table td:before,
+    .orders-table td:before {
+        content: attr(data-label);
+        font-weight: bold;
+        text-align: left;
+        margin-right: 5px;
+    }
+
+    /* Button adjustments for mobile */
+    .order-table td button,
+    .orders-table td button {
+        margin: 5px;
+    }
+
+    /* Stack buttons in action cells */
+    .order-action-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .order-edit-button,
+    .order-delete-button {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    .order-table td:last-child,
+    .orders-table td:last-child {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .order-table td:last-child button,
+    .orders-table td:last-child button {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    /* Modal adjustments */
+    .edit-modal-order,
+    .status-modal {
+        width: 95%;
+        padding: 15px;
+    }
+
+    .button-container,
+    .edit-modal-order .button-group,
+    .order-button-group {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .button-container button,
+    .edit-modal-order .button-group button,
+    .order-button-group button {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    /* Action buttons adjustments */
+    .edit-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .edit-actions button {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    /* Pagination adjustments */
+    .pagination-controls {
+        gap: 5px;
+    }
+
+    .pagination-controls button {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+}
+
+/* Medium devices (tablets) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .order-create-form {
+        justify-content: space-between;
+    }
+
+    .order-create-form input,
+    .order-create-form select {
+        flex: 0 0 calc(50% - 10px);
+    }
+
+    .order-create-form button {
+        flex: 0 0 auto;
+    }
+
+    .edit-modal-order,
+    .status-modal {
+        width: 80%;
+    }
+}
+
+/* Large devices (desktops) */
+@media (min-width: 992px) {
+    .order-management-container {
+        padding: 30px;
+    }
+
+    .order-create-form {
+        padding: 20px;
+    }
 }
