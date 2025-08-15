@@ -45,9 +45,38 @@
     border-color: #007bff;
 }
 
-.user-create-form button:hover {
-    background: #218838;
+.user-create-form .create-button:hover { background-color: #218838; }
+
+.delete-button:hover,
+.cancel-button:hover {
+    background-color: #a71e2a; /* Darker red */
 }
+
+.user-create-form .cancel-button:hover,
+.user-create-form .delete-button:hover {
+    background-color: #a71e2a;
+}
+
+.user-cancel-button:hover {
+    background-color: #a71e2a;
+    transform: scale(1.05);
+}
+
+.user-delete-button:hover {
+    background-color: #a71e2a;
+}
+
+.edit-modal-user .cancel-button:hover,
+.role-modal .cancel-button:hover {
+    background-color: #a71e2a;
+    transform: scale(1.05);
+}
+
+.view-button:hover,
+.edit-button:hover{
+    background-color: #0056b3; /* darker blue */
+}
+
 
 /* Button styles */
 .create-button {
@@ -62,8 +91,7 @@
 }
 
 .delete-button,
-.cancel-button,
-.confirm-button {
+.cancel-button{
     background-color: #dc3545;
     color: white;
     padding: 10px 20px;
@@ -72,24 +100,6 @@
     cursor: pointer;
     font-size: 14px;
     white-space: nowrap;
-}
-
-.view-button,
-.edit-button {
-    background-color: #007bff;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    white-space: nowrap;
-}
-
-.delete-button:hover,
-.cancel-button:hover,
-.confirm-button:hover {
-    background-color: #dc3545;
 }
 
 /* Table containers with horizontal scroll for small screens */
@@ -173,11 +183,6 @@
     background-color: #dc3545;
 }
 
-.user-cancel-button:hover {
-    background-color: #c82333;
-    transform: scale(1.05);
-}
-
 .user-confirm-button {
     background-color: #28a745;
 }
@@ -256,17 +261,6 @@
 .edit-modal-user .save-button:hover,
 .role-modal .assign-button:hover {
     background-color: #218838;
-    transform: scale(1.05);
-}
-
-.edit-modal-user .cancel-button,
-.role-modal .cancel-button {
-    background-color: #dc3545;
-}
-
-.edit-modal-user .cancel-button:hover,
-.role-modal .cancel-button:hover {
-    background-color: #c82333;
     transform: scale(1.05);
 }
 

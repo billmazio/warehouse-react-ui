@@ -55,6 +55,20 @@
     border-color: #007bff;
 }
 
+.create-button {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    white-space: nowrap;
+    transition: background-color .2s ease, transform .1s ease;
+}
+
+.create-button:hover { background-color: #1e7e34 !important; }
+
 /* Table container with horizontal scroll for small screens */
 .table-container {
     width: 100%;
@@ -233,12 +247,12 @@ ul li {
 
 .add-material-form button:hover {
     background-color: #218838;
+
 }
 
 .delete-button:hover,
-.cancel-button:hover,
-.confirm-button:hover {
-    background-color: #dc3545;
+.cancel-button:hover {
+    background-color: #a71e2a; /* Darker red */
 }
 
 /* Confirmation actions */
@@ -256,17 +270,6 @@ ul li {
     text-align: center;
     width: 150px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.materials-confirmation-actions .materials-cancel-button {
-    background-color: #c82333;
-    color: white;
-    margin-right: 10px;
-}
-
-.materials-confirmation-actions .materials-cancel-button:hover {
-    background-color: #dc3545;
-    transform: scale(1.05);
 }
 
 .materials-confirmation-actions .materials-confirm-button {
@@ -352,7 +355,7 @@ ul li {
 
 .edit-modal-materials .cancel-button:hover,
 .materials-cancel-button:hover {
-    background-color: #c82333;
+    background-color: #a71e2a;
     transform: scale(1.05);
 }
 

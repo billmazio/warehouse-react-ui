@@ -45,8 +45,32 @@
     border-color: #007bff;
 }
 
-.order-create-form button:hover {
-    background: #218838;
+.order-create-form .create-button:hover { background-color: #218838; }
+
+
+.delete-button:hover,
+.cancel-button:hover {
+    background-color: #a71e2a; /* Darker red */
+}
+
+.order-create-form .cancel-button:hover,
+.order-create-form .delete-button:hover {
+    background-color: #a71e2a;
+}
+
+.order-cancel-button:hover {
+    background-color: #a71e2a;
+    transform: scale(1.05);
+}
+
+.order-delete-button:hover {
+    background-color: #a71e2a;
+}
+
+.edit-modal-order .cancel-button:hover,
+.status-modal .cancel-button:hover {
+    background-color: #a71e2a;
+    transform: scale(1.05);
 }
 
 /* Button styles */
@@ -62,8 +86,7 @@
 }
 
 .delete-button,
-.cancel-button,
-.confirm-button {
+.cancel-button{
     background-color: #dc3545;
     color: white;
     padding: 10px 20px;
@@ -84,12 +107,6 @@
     cursor: pointer;
     font-size: 14px;
     white-space: nowrap;
-}
-
-.delete-button:hover,
-.cancel-button:hover,
-.confirm-button:hover {
-    background-color: #dc3545;
 }
 
 /* Table containers with horizontal scroll for small screens */
@@ -173,11 +190,6 @@
     background-color: #dc3545;
 }
 
-.order-cancel-button:hover {
-    background-color: #c82333;
-    transform: scale(1.05);
-}
-
 .order-confirm-button {
     background-color: #28a745;
 }
@@ -186,6 +198,11 @@
     background-color: #218838;
     transform: scale(1.05);
 }
+
+.order-edit-button:hover{
+    background-color: #0056b3; /* darker blue */
+}
+
 
 /* Modals */
 .edit-modal-order,
@@ -256,17 +273,6 @@
 .edit-modal-order .save-button:hover,
 .status-modal .update-button:hover {
     background-color: #218838;
-    transform: scale(1.05);
-}
-
-.edit-modal-order .cancel-button,
-.status-modal .cancel-button {
-    background-color: #dc3545;
-}
-
-.edit-modal-order .cancel-button:hover,
-.status-modal .cancel-button:hover {
-    background-color: #c82333;
     transform: scale(1.05);
 }
 

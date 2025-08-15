@@ -83,7 +83,6 @@ const StoreMaterialsList = () => {
                         </option>
                     ))}
                 </select>
-                <button onClick={handleFilter}>Φιλτράρισμα</button>
             </div>
 
             {/* Materials */}

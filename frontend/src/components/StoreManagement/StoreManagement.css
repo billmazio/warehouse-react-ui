@@ -44,8 +44,32 @@
     border-color: #007bff;
 }
 
-.store-create-form button:hover {
-    background: #218838;
+.store-create-form .create-button:hover { background-color: #218838; }
+
+.delete-button:hover,
+.cancel-button:hover {
+    background-color: #a71e2a; /* Darker red */
+}
+
+.store-create-form .cancel-button:hover,
+.store-create-form .delete-button:hover{
+    background-color: #a71e2a;
+}
+
+.store-cancel-button:hover {
+    background-color: #a71e2a;
+    transform: scale(1.05);
+}
+
+.store-delete-button:hover {
+    background-color: #a71e2a;
+    transform: scale(1.05);
+}
+
+.edit-modal-store .cancel-button:hover,
+.distribution-modal .cancel-button:hover {
+    background-color: #a71e2a;
+    transform: scale(1.05);
 }
 
 /* Button styles */
@@ -61,8 +85,7 @@
 }
 
 .delete-button,
-.cancel-button,
-.confirm-button {
+.cancel-button{
     background-color: #dc3545;
     color: white;
     padding: 10px 20px;
@@ -83,12 +106,6 @@
     cursor: pointer;
     font-size: 14px;
     white-space: nowrap;
-}
-
-.delete-button:hover,
-.cancel-button:hover,
-.confirm-button:hover {
-    background-color: #dc3545;
 }
 
 /* Table containers with horizontal scroll for small screens */
@@ -172,11 +189,6 @@
     background-color: #dc3545;
 }
 
-.store-cancel-button:hover {
-    background-color: #c82333;
-    transform: scale(1.05);
-}
-
 .store-confirm-button {
     background-color: #28a745;
 }
@@ -255,17 +267,6 @@
 .edit-modal-store .save-button:hover,
 .distribution-modal .distribution-button:hover {
     background-color: #218838;
-    transform: scale(1.05);
-}
-
-.edit-modal-store .cancel-button,
-.distribution-modal .cancel-button {
-    background-color: #dc3545;
-}
-
-.edit-modal-store .cancel-button:hover,
-.distribution-modal .cancel-button:hover {
-    background-color: #c82333;
     transform: scale(1.05);
 }
 

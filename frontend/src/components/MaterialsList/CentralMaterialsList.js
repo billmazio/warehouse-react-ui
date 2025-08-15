@@ -194,10 +194,6 @@ const CentralMaterialsList = () => {
                         </option>
                     ))}
                 </select>
-                <button className="create-button" onClick={loadMaterials}>
-                    Φιλτράρισμα
-                </button>
-
                 {/* Add Material Button */}
                 <button
                     className="create-button"
