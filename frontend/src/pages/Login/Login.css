@@ -22,7 +22,6 @@
     align-items: center;
 }
 
-/* Form heading */
 .login-form h2 {
     margin-bottom: 20px;
     font-size: 24px;
@@ -30,28 +29,27 @@
     color: #ffffff;
 }
 
-/* Form input fields */
 .form-group {
-    width: 100%; /* Ensures input fields take up the full width of the form */
+    width: 100%;
     display: flex;
     justify-content: center;
     margin-bottom: 15px;
 }
 
 .form-group input {
-    width: 100%; /* Full width inside the parent container */
+    width: 100%;
     padding: 12px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 16px;
     background-color: #f9f9f9;
-    text-align: center; /* Centers text inside the input fields */
+    text-align: center;
+    align-self: center;
 }
 
 /* Login button */
 .btn {
-    width: 100%;
-    padding: 12px;
+    margin: 0 auto;
     background-color: #007bff;
     border: none;
     border-radius: 8px;
@@ -59,6 +57,10 @@
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.1s;
+    width: auto;
+    display: inline-block;
+    padding: 12px 28px;
+    align-self: center;
 }
 
 .btn:hover {
@@ -66,7 +68,6 @@
     transform: scale(1.02);
 }
 
-/* Error message */
 .error-message {
     color: #ff4d4d;
     margin-top: 10px;

@@ -31,7 +31,6 @@ const Login = () => {
     return (
         <div className="login-container">
             <div className="login-form">
-                <h2>Login</h2>
                 <form onSubmit={handleLogin}>
                     <div className="form-group">
                         <input
@@ -51,7 +50,7 @@ const Login = () => {
                             required
                         />
                     </div>
-                    <button type="submit" className="btn">Login</button>
+                    <button type="submit" className="btn">Sign In</button>
                 </form>
                 {error && <p className="error-message">{error}</p>}
             </div>
