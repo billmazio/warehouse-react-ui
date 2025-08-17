@@ -58,12 +58,12 @@ const App = () => {
 
     // Function to update authentication state (can be passed to Login component)
     const handleLoginSuccess = () => {
-        console.log("🎉 Login successful, updating app state");
+        console.log("Login successful, updating app state");
         setIsAuthenticated(true);
     };
 
     const handleLogout = () => {
-        console.log("🔐 Logging out, clearing app state");
+        console.log("Logging out, clearing app state");
         TokenManager.removeToken();
         setIsAuthenticated(false);
     };

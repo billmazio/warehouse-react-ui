@@ -5,58 +5,70 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 const api = axios.create({
     baseURL: API_BASE_URL,
     timeout: 10000,
-    withCredentials: false
+    withCredentials: false,
 });
+
+// --- base64url-safe JWT payload parse ---
+const parseJwtPayload = (t) => {
+    const base64 = t.split(".")[1];
+    const base64Url = base64.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64Url.padEnd(
+        base64Url.length + ((4 - (base64Url.length % 4)) % 4),
+        "="
+    );
+    return JSON.parse(atob(padded));
+};
 
 const TokenManager = {
     getToken: () => localStorage.getItem("token"),
-
-    setToken: (token) => {
-        localStorage.setItem("token", token);
-        // Set expiration time (15 minutes from now)
-        const expirationTime = new Date().getTime() + (15 * 60 * 1000);
-        localStorage.setItem("tokenExpiration", expirationTime.toString());
-    },
-
-    removeToken: () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("tokenExpiration");
-    },
+    setToken: (token) => localStorage.setItem("token", token),
+    removeToken: () => localStorage.removeItem("token"),
 
     isTokenExpired: () => {
-        const expirationTime = localStorage.getItem("tokenExpiration");
-        if (!expirationTime) return true;
-
-        return new Date().getTime() > parseInt(expirationTime);
+        const t = localStorage.getItem("token");
+        if (!t) return true;
+        try {
+            const payload = parseJwtPayload(t); // exp is in SECONDS
+            const exp = payload?.exp;
+            if (!exp) return true;
+            const now = Math.floor(Date.now() / 1000);
+            return now >= exp - 10; // 10s skew
+        } catch {
+            return true;
+        }
     },
 
     getTimeUntilExpiry: () => {
-        const expirationTime = localStorage.getItem("tokenExpiration");
-        if (!expirationTime) return 0;
-
-        const timeLeft = parseInt(expirationTime) - new Date().getTime();
-        return Math.max(0, Math.floor(timeLeft / 1000)); // Return seconds
-    }
+        const t = localStorage.getItem("token");
+        if (!t) return 0;
+        try {
+            const { exp } = parseJwtPayload(t);
+            return Math.max(0, exp - Math.floor(Date.now() / 1000));
+        } catch {
+            return 0;
+        }
+    },
 };
 
 api.interceptors.request.use(
     (config) => {
-        const token = TokenManager.getToken();
+        let token = TokenManager.getToken();
 
-        // Check if token is expired before making request
+        // If expired, drop it; backend will 401 and response interceptor will handle redirect
         if (token && TokenManager.isTokenExpired()) {
-            console.warn("Token has expired, redirecting to login...");
+            console.warn("Token has expired.");
             TokenManager.removeToken();
-            window.location.href = "/login";
-            return Promise.reject(new Error("Token expired"));
+            token = null; // prevent sending stale Authorization
         }
 
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         } else {
             // Only warn for protected endpoints (not login/public endpoints)
-            if (!config.url.includes('/api/auth/login') &&
-                !config.url.includes('/api/setup')) {
+            if (
+                !config.url.includes("/api/auth/login") &&
+                !config.url.includes("/api/setup")
+            ) {
                 console.warn("No token found! Request may fail.");
             }
         }
@@ -71,34 +83,37 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
     (response) => {
-        // Handle successful login - store token with expiration
-        if (response.config.url.includes('/api/auth/login') && response.data.token) {
+        // On successful login, store token and set default header immediately
+        if (response.config.url.includes("/api/auth/login") && response.data.token) {
             TokenManager.setToken(response.data.token);
-            console.log("Token stored successfully, expires in 15 minutes");
+            api.defaults.headers.common.Authorization = `Bearer ${response.data.token}`;
+            try {
+                const { exp } = parseJwtPayload(response.data.token);
+                const seconds = Math.max(0, exp - Math.floor(Date.now() / 1000));
+                console.log(`Token stored. Expires in ~${seconds}s`);
+            } catch {
+                // ignore parse issues
+            }
         }
-
         return response;
     },
     (error) => {
         console.error("API Error:", error.response?.data || error.message);
 
-        // Handle different error scenarios
         if (error.response?.status === 401) {
             console.warn("Unauthorized! Token may be expired or invalid.");
             TokenManager.removeToken();
 
             // Don't redirect if it's a login attempt
-            if (!error.config.url.includes('/api/auth/login')) {
+            if (!error.config?.url?.includes("/api/auth/login")) {
                 window.location.href = "/login";
             }
         }
 
         if (error.response?.status === 403) {
             console.warn("Forbidden! Insufficient permissions.");
-            // You might want to show a "Access Denied" page instead of redirect
         }
 
-        // Handle network errors
         if (!error.response) {
             console.error("Network error - server may be down");
         }
@@ -107,7 +122,8 @@ api.interceptors.response.use(
     }
 );
 
-export { TokenManager};
+export { api, TokenManager };
+export default api;
 
 export const fetchUsers = async () => {
     try {
@@ -358,7 +374,6 @@ export const createMaterial = async (materialData) => {
     }
 };
 
-export default api;
 
 
 
