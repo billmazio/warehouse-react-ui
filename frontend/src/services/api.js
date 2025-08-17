@@ -8,16 +8,62 @@ const api = axios.create({
     withCredentials: false
 });
 
+// Token management utilities
+const TokenManager = {
+    getToken: () => localStorage.getItem("token"),
 
+    setToken: (token) => {
+        localStorage.setItem("token", token);
+        // Set expiration time (15 minutes from now)
+        const expirationTime = new Date().getTime() + (15 * 60 * 1000);
+        localStorage.setItem("tokenExpiration", expirationTime.toString());
+    },
+
+    removeToken: () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("tokenExpiration");
+    },
+
+    isTokenExpired: () => {
+        const expirationTime = localStorage.getItem("tokenExpiration");
+        if (!expirationTime) return true;
+
+        return new Date().getTime() > parseInt(expirationTime);
+    },
+
+    getTimeUntilExpiry: () => {
+        const expirationTime = localStorage.getItem("tokenExpiration");
+        if (!expirationTime) return 0;
+
+        const timeLeft = parseInt(expirationTime) - new Date().getTime();
+        return Math.max(0, Math.floor(timeLeft / 1000)); // Return seconds
+    }
+};
+
+// Request interceptor
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem("token");
+        const token = TokenManager.getToken();
+
+        // Check if token is expired before making request
+        if (token && TokenManager.isTokenExpired()) {
+            console.warn("Token has expired, redirecting to login...");
+            TokenManager.removeToken();
+            window.location.href = "/login";
+            return Promise.reject(new Error("Token expired"));
+        }
+
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         } else {
-            console.warn("No token found in localStorage! Some requests may fail.");
+            // Only warn for protected endpoints (not login/public endpoints)
+            if (!config.url.includes('/api/auth/login') &&
+                !config.url.includes('/api/setup')) {
+                console.warn("No token found! Request may fail.");
+            }
         }
-        return config; // Return the modified config
+
+        return config;
     },
     (error) => {
         console.error("Error in Axios request interceptor:", error);
@@ -25,23 +71,46 @@ api.interceptors.request.use(
     }
 );
 
+// Response interceptor
 api.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        console.error("Error in Axios response interceptor:", error.response || error.message);
+    (response) => {
+        // Handle successful login - store token with expiration
+        if (response.config.url.includes('/api/auth/login') && response.data.token) {
+            TokenManager.setToken(response.data.token);
+            console.log("Token stored successfully, expires in 15 minutes");
+        }
 
+        return response;
+    },
+    (error) => {
+        console.error("API Error:", error.response?.data || error.message);
+
+        // Handle different error scenarios
         if (error.response?.status === 401) {
-            console.warn("Unauthorized! Redirecting to login...");
-            window.location.href = "/login"; //
+            console.warn("Unauthorized! Token may be expired or invalid.");
+            TokenManager.removeToken();
+
+            // Don't redirect if it's a login attempt
+            if (!error.config.url.includes('/api/auth/login')) {
+                window.location.href = "/login";
+            }
         }
 
         if (error.response?.status === 403) {
-            console.warn("Token expired or insufficient permissions.");
+            console.warn("Forbidden! Insufficient permissions.");
+            // You might want to show a "Access Denied" page instead of redirect
+        }
+
+        // Handle network errors
+        if (!error.response) {
+            console.error("Network error - server may be down");
         }
 
         return Promise.reject(error);
     }
 );
+
+export { TokenManager};
 
 export const fetchUsers = async () => {
     try {
@@ -307,20 +376,6 @@ export const createMaterial = async (materialData) => {
     }
 };
 
-
-// Logout
-/*export const logout = async () => {
-    try {
-        const response = await api.post("/auth/logout");
-        localStorage.removeItem("token");
-        return response.data;
-    } catch (err) {
-        console.error("Error in logout:", err.response || err.message);
-        throw err;
-    }
-};*/
-
-// Export the Axios instance
 export default api;
 
 
