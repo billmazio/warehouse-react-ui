@@ -75,7 +75,6 @@ const App = () => {
     return (
         <Router>
             <Routes>
-                {/* Root path redirects based on setup status and authentication */}
                 <Route
                     path="/"
                     element={
@@ -87,7 +86,6 @@ const App = () => {
                     }
                 />
 
-                {/* Setup route */}
                 <Route
                     path="/setup"
                     element={
@@ -100,7 +98,6 @@ const App = () => {
                     }
                 />
 
-                {/* Login route - redirect to dashboard if already authenticated */}
                 <Route
                     path="/login"
                     element={
@@ -110,7 +107,6 @@ const App = () => {
                     }
                 />
 
-                {/* Protected dashboard routes */}
                 <Route
                     path="/dashboard"
                     element={
@@ -130,7 +126,6 @@ const App = () => {
                     <Route path="manage-orders" element={<OrderManagement />} />
                 </Route>
 
-                {/* Catch all route */}
                 <Route path="*" element={
                     isSetupRequired ?
                         <Navigate to="/setup" replace /> :

@@ -8,7 +8,6 @@ const api = axios.create({
     withCredentials: false
 });
 
-// Token management utilities
 const TokenManager = {
     getToken: () => localStorage.getItem("token"),
 
@@ -40,7 +39,6 @@ const TokenManager = {
     }
 };
 
-// Request interceptor
 api.interceptors.request.use(
     (config) => {
         const token = TokenManager.getToken();
@@ -71,7 +69,6 @@ api.interceptors.request.use(
     }
 );
 
-// Response interceptor
 api.interceptors.response.use(
     (response) => {
         // Handle successful login - store token with expiration
@@ -132,7 +129,6 @@ export const deleteUser = async (userId) => {
     }
 };
 
-
 export const createUser = async (userData) => {
     try {
         const response = await api.post("/api/users", {
@@ -149,7 +145,6 @@ export const createUser = async (userData) => {
     }
 };
 
-
 export const fetchDashboardData = async () => {
     try {
         const response = await api.get("/api/dashboard");
@@ -159,7 +154,6 @@ export const fetchDashboardData = async () => {
         throw err;
     }
 };
-
 
 export const fetchUserDetails = async () => {
     try {
@@ -206,7 +200,6 @@ export const editStore = async (id, updatedData) => {
     }
 };
 
-
 export const deleteStore = async (id) => {
     try {
         const response = await api.delete(`/api/stores/${id}`);
@@ -216,7 +209,6 @@ export const deleteStore = async (id) => {
         throw err;
     }
 };
-
 
 export const fetchStoreDetails = async (storeId) => {
     try {
@@ -237,8 +229,6 @@ export const fetchMaterials = async () => {
         throw error;
     }
 };
-
-
 
 export const fetchMaterialsByStoreId = async (storeId, page = 0, size = 5, text = "", sizeId = "") => {
     try {
@@ -274,7 +264,6 @@ export const editMaterial = async (id, updatedData) => {
     }
 };
 
-
 export const deleteMaterial = async (id) => {
     try {
         const response = await api.delete(`/api/materials/${id}`);
@@ -301,12 +290,10 @@ export const distributeMaterial = async (payload) => {
     }
 };
 
-
 export const fetchSizes = async () => {
     const response = await api.get("/api/sizes");
     return response.data;
 };
-
 
 export const fetchOrders = async (page = 0, size = 5, storeId = null, userId = null, materialText = "", sizeName = "") => {
     try {
@@ -319,8 +306,6 @@ export const fetchOrders = async (page = 0, size = 5, storeId = null, userId = n
         throw error;
     }
 };
-
-
 
 export const createOrder = async (orderData) => {
     try {
@@ -343,7 +328,6 @@ export const createOrder = async (orderData) => {
     }
 };
 
-
 export const editOrder = async (id, updatedData) => {
     try {
         const response = await api.put(`/api/orders/${id}`, updatedData);
@@ -354,7 +338,6 @@ export const editOrder = async (id, updatedData) => {
     }
 };
 
-
 export const deleteOrder = async (id) => {
     try {
         const response = await api.delete(`/api/orders/${id}`);
@@ -364,7 +347,6 @@ export const deleteOrder = async (id) => {
         throw error;
     }
 };
-
 
 export const createMaterial = async (materialData) => {
     try {
