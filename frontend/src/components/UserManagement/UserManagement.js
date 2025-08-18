@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-    fetchUsers,
-    createUser,
-    deleteUser,
-    fetchStores, fetchUserDetails,
+import {fetchUsers, createUser, deleteUser, fetchStores, fetchUserDetails,
 } from "../../services/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -95,9 +91,6 @@ const UserManagement = () => {
         }
     };
 
-
-
-
     const handleCreate = async () => {
         if (!newUser.username.trim() || !newUser.password.trim() || !newUser.storeId) {
             toast.warning("Το Όνομα Χρήστη, ο Κωδικός Πρόσβασης και η επιλογή Αποθήκης είναι απαραίτητα.");
@@ -107,7 +100,7 @@ const UserManagement = () => {
         try {
             const createdUser = await createUser(newUser);
             setUsers([...users, createdUser]);
-            setNewUser({ username: "", password: "", role: "LOCAL_ADMIN", enable: 1, storeId: "" });
+            setNewUser({ username: "", password: "", role: "", enable: 1, storeId: "" });
             toast.success("Ο χρήστης δημιουργήθηκε επιτυχώς.");
         } catch (err) {
             if (err.response) {
@@ -127,7 +120,6 @@ const UserManagement = () => {
             }
         }
     };
-
 
     return (
         <div className="user-management-container">
@@ -157,6 +149,9 @@ const UserManagement = () => {
                         value={newUser.role}
                         onChange={(e) => setNewUser({...newUser, role: e.target.value})}
                     >
+                        <option value="" disabled>
+                            Επιλογή Χρήστη
+                        </option>
                         <option value="SUPER_ADMIN">Super Admin</option>
                         <option value="LOCAL_ADMIN">Local Admin</option>
                     </select>
@@ -206,7 +201,6 @@ const UserManagement = () => {
                 </div>
             }
 
-
             <table className="user-table">
                 <thead>
                 <tr>
@@ -243,7 +237,6 @@ const UserManagement = () => {
                 </tbody>
             </table>
 
-
             {showConfirmation && (
                 <div className="confirmation-dialog">
                     <div className="confirmation-content">
@@ -263,10 +256,7 @@ const UserManagement = () => {
                 </div>
             )}
 
-
         </div>
-
     );
 };
-
 export default UserManagement;
