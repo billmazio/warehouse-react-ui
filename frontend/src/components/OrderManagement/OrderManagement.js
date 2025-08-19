@@ -10,11 +10,11 @@ import {
     editOrder,
     deleteOrder,
     fetchUserDetails,
-
-} from "../../services/api"; // Added editOrder and deleteOrder
+} from "../../services/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./OrderManagement.css";
+import { orderErrorToGreek } from "../../utils/orderErrors";
 
 const OrderManagement = () => {
     const navigate = useNavigate();
@@ -39,25 +39,21 @@ const OrderManagement = () => {
     const [totalPages, setTotalPages] = useState(0);
     const pageSize = 5;
 
+    const [orderToDelete, setOrderToDelete] = useState(null);
+    const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+
     const loadData = async (page = 0, size = 5) => {
         try {
-            const [storeData, userData, materialData, sizeData, loggedInUser] = await Promise.all([
-                fetchStores(),
-                fetchUsers(),
-                fetchMaterials(),
-                fetchSizes(),
-                fetchUserDetails(),
-            ]);
+            const [storeData, userData, materialData, sizeData, loggedInUser] =
+                await Promise.all([fetchStores(), fetchUsers(), fetchMaterials(), fetchSizes(), fetchUserDetails()]);
 
             setStores(storeData);
             setUsers(userData);
             setMaterials(materialData);
             setSizes(sizeData);
 
-
-            const userRoles = loggedInUser.roles.map((role) => role.name);
+            const userRoles = (loggedInUser.roles || []).map((role) => role.name);
             if (userRoles.includes("SUPER_ADMIN")) {
-
                 const orderData = await fetchOrders(page, size, null, null, "", "");
                 setOrders(orderData.content || []);
                 setTotalPages(orderData.totalPages || 0);
@@ -69,38 +65,35 @@ const OrderManagement = () => {
             }
         } catch (err) {
             console.error("Error fetching data:", err);
-            toast.error("Αποτυχία φόρτωσης δεδομένων.");
+            toast.error(orderErrorToGreek(err, { op: "load" }));
         }
     };
 
-
-
     useEffect(() => {
         loadData(currentPage, pageSize);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPage, pageSize]);
 
-    const handleCreate = async () => {
-        const requiredFields = ["quantity", "dateOfOrder", "userName", "storeTitle", "materialText", "sizeName"];
-        const missingFields = requiredFields.filter(field => !newOrder[field]);
+    const requiredFields = ["quantity", "dateOfOrder", "userName", "storeTitle", "materialText", "sizeName"];
 
-        if (missingFields.length > 0) {
-            const fieldTranslations = {
+    const handleCreate = async () => {
+        const missing = requiredFields.filter((f) => !newOrder[f]);
+        if (missing.length > 0) {
+            const t = {
                 quantity: "Ποσότητα",
                 dateOfOrder: "Ημερομηνία Παραγγελίας",
                 userName: "Χρήστης",
                 storeTitle: "Αποθήκη",
                 materialText: "Υλικό",
-                sizeName: "Μέγεθος"
+                sizeName: "Μέγεθος",
             };
-
-            const translatedFields = missingFields.map(field => fieldTranslations[field]).join(", ");
-            toast.warning(`Λείπουν απαιτούμενα πεδία: ${translatedFields}`);
+            toast.warning(`Λείπουν απαιτούμενα πεδία: ${missing.map((m) => t[m]).join(", ")}`);
             return;
         }
 
         try {
             const createdOrder = await createOrder(newOrder);
-            setOrders([...orders, createdOrder]); // Use the returned order with updated stock and sold values
+            setOrders((prev) => [...prev, createdOrder]);
             setNewOrder({
                 quantity: 0,
                 dateOfOrder: "",
@@ -113,19 +106,24 @@ const OrderManagement = () => {
             });
             toast.success("Η παραγγελία δημιουργήθηκε με επιτυχία.");
         } catch (err) {
-            toast.error("Αποτυχία δημιουργίας παραγγελίας.");
+            const ctx = {
+                op: "createOrder",
+                materialText: newOrder.materialText,
+                sizeName: newOrder.sizeName,
+                storeTitle: newOrder.storeTitle,
+            };
+            toast.error(orderErrorToGreek(err, ctx));
         }
     };
-
 
     const handleEdit = async () => {
         if (!editingOrder) return;
 
         try {
-            const updatedOrder = await editOrder(editingOrder.id, newOrder); // Send updated data to the backend
-            setOrders(orders.map(order => order.id === updatedOrder.id ? updatedOrder : order)); // Update order list
+            const updatedOrder = await editOrder(editingOrder.id, newOrder);
+            setOrders((prev) => prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o)));
             toast.success("Η παραγγελία ενημερώθηκε με επιτυχία.");
-            setEditingOrder(null); // Clear editing state
+            setEditingOrder(null);
             setNewOrder({
                 quantity: 0,
                 dateOfOrder: "",
@@ -137,15 +135,20 @@ const OrderManagement = () => {
                 userName: "",
             });
         } catch (err) {
-            toast.error("Αποτυχία ενημέρωσης παραγγελίας.");
+            const ctx = {
+                op: "editOrder",
+                materialText: newOrder.materialText,
+                sizeName: newOrder.sizeName,
+                storeTitle: newOrder.storeTitle,
+            };
+            toast.error(orderErrorToGreek(err, ctx));
         }
     };
 
-
     const handleEditButtonClick = (orderId) => {
-        const orderToEdit = orders.find(order => order.id === orderId);
+        const orderToEdit = orders.find((order) => order.id === orderId);
         if (orderToEdit) {
-            setEditingOrder(orderToEdit); // Track the order being edited
+            setEditingOrder(orderToEdit);
             setNewOrder({
                 quantity: orderToEdit.quantity,
                 dateOfOrder: orderToEdit.dateOfOrder,
@@ -158,9 +161,6 @@ const OrderManagement = () => {
             });
         }
     };
-
-    const [orderToDelete, setOrderToDelete] = useState(null);
-    const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
 
     const openConfirmationDialog = (order) => {
         setOrderToDelete(order);
@@ -175,41 +175,30 @@ const OrderManagement = () => {
     const confirmDelete = async () => {
         try {
             await deleteOrder(orderToDelete.id);
-            setOrders(orders.filter((order) => order.id !== orderToDelete.id));
+            setOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id));
             toast.success(`Η παραγγελία με ID "${orderToDelete.id}" διαγράφηκε επιτυχώς.`);
         } catch (err) {
-            console.error("Error deleting order:", err);
-            toast.error(
-                `Δεν μπορείτε να διαγράψετε την παραγγελία με ID "${orderToDelete.id}" επειδή περιέχει συνδεδεμένα δεδομένα.`
-            );
+            toast.error(orderErrorToGreek(err, { op: "deleteOrder" }));
         } finally {
             closeConfirmationDialog();
         }
     };
 
     const handlePageChange = (newPage) => {
-        if (newPage >= 0 && newPage < totalPages) {
-            setCurrentPage(newPage);
-        }
+        if (newPage >= 0 && newPage < totalPages) setCurrentPage(newPage);
     };
 
-    const filteredMaterials = materials.filter(
-        (material) => material.storeTitle === newOrder.storeTitle
-    );
-
-
-    const filteredSizes = sizes.filter(size => filteredMaterials.some(material => material.sizeId === size.id));
-
-    const uniqueMaterials = filteredMaterials.reduce((acc, material) => {
-        if (!acc.some((item) => item.text === material.text)) {
-            acc.push(material);
-        }
+    // Derived lists
+    const filteredMaterials = materials.filter((m) => m.storeTitle === newOrder.storeTitle);
+    const filteredSizes = sizes.filter((s) => filteredMaterials.some((m) => m.sizeId === s.id));
+    const uniqueMaterials = filteredMaterials.reduce((acc, m) => {
+        if (!acc.some((x) => x.text === m.text)) acc.push(m);
         return acc;
     }, []);
 
     return (
         <div className="order-management-container">
-            <ToastContainer/>
+            <ToastContainer />
             <button onClick={() => navigate("/dashboard")} className="back-button">
                 Πίσω στην Κεντρική Διαχείριση
             </button>
@@ -219,24 +208,29 @@ const OrderManagement = () => {
                 <input
                     type="number"
                     placeholder="Ποσότητα"
-                    value={newOrder.quantity || ""} // Show placeholder when quantity is 0 or empty
-                    onChange={(e) => setNewOrder({
-                        ...newOrder,
-                        quantity: e.target.value ? parseInt(e.target.value) : 0
-                    })}
+                    value={newOrder.quantity || ""} // show placeholder when 0
+                    onChange={(e) =>
+                        setNewOrder({
+                            ...newOrder,
+                            quantity: e.target.value ? parseInt(e.target.value, 10) : 0,
+                        })
+                    }
                 />
 
                 <input
                     type="date"
                     placeholder="Ημερομηνία Παραγγελίας"
                     value={newOrder.dateOfOrder}
-                    onChange={(e) => setNewOrder({...newOrder, dateOfOrder: e.target.value})}
+                    onChange={(e) => setNewOrder({ ...newOrder, dateOfOrder: e.target.value })}
                 />
+
                 <select
                     value={newOrder.storeTitle}
-                    onChange={(e) => setNewOrder({...newOrder, storeTitle: e.target.value})}
+                    onChange={(e) => setNewOrder({ ...newOrder, storeTitle: e.target.value })}
                 >
-                    <option value="" disabled>Επιλογή Αποθήκης</option>
+                    <option value="" disabled>
+                        Επιλογή Αποθήκης
+                    </option>
                     {stores.map((store) => (
                         <option key={store.id} value={store.title}>
                             {store.title}
@@ -247,7 +241,7 @@ const OrderManagement = () => {
                 <select
                     value={newOrder.materialText}
                     onChange={(e) => {
-                        const selectedMaterial = uniqueMaterials.find((material) => material.text === e.target.value);
+                        const selectedMaterial = uniqueMaterials.find((m) => m.text === e.target.value);
                         setNewOrder({
                             ...newOrder,
                             materialText: e.target.value,
@@ -255,38 +249,47 @@ const OrderManagement = () => {
                         });
                     }}
                 >
-                    <option value="" disabled>Επιλογή Υλικού</option>
+                    <option value="" disabled>
+                        Επιλογή Υλικού
+                    </option>
                     {uniqueMaterials.map((material) => (
                         <option key={material.id} value={material.text}>
                             {material.text}
                         </option>
                     ))}
                 </select>
+
                 <select
                     value={newOrder.sizeName}
-                    onChange={(e) => setNewOrder({...newOrder, sizeName: e.target.value})}
+                    onChange={(e) => setNewOrder({ ...newOrder, sizeName: e.target.value })}
                 >
-                    <option value="" disabled>Επιλογή Μεγέθους</option>
+                    <option value="" disabled>
+                        Επιλογή Μεγέθους
+                    </option>
                     {filteredSizes.map((size) => (
                         <option key={size.id} value={size.name}>
                             {size.name}
                         </option>
                     ))}
                 </select>
+
                 <select
                     value={newOrder.userName}
-                    onChange={(e) => setNewOrder({...newOrder, userName: e.target.value})}
+                    onChange={(e) => setNewOrder({ ...newOrder, userName: e.target.value })}
                 >
-                    <option value="" disabled>Επιλογή Χρήστη</option>
+                    <option value="" disabled>
+                        Επιλογή Χρήστη
+                    </option>
                     {users.map((user) => (
                         <option key={user.id} value={user.username}>
                             {user.username}
                         </option>
                     ))}
                 </select>
+
                 <select
                     value={newOrder.status}
-                    onChange={(e) => setNewOrder({...newOrder, status: e.target.value})}
+                    onChange={(e) => setNewOrder({ ...newOrder, status: Number(e.target.value) })}
                 >
                     <option value={1}>Σε Εκκρεμότητα</option>
                     <option value={2}>Ολοκληρωμένη</option>
@@ -296,6 +299,7 @@ const OrderManagement = () => {
                 <button className="create-button" onClick={handleCreate} disabled={editingOrder !== null}>
                     Δημιουργία Παραγγελίας
                 </button>
+
                 {editingOrder && (
                     <button className="edit-button" onClick={handleEdit}>
                         Ενημέρωση Παραγγελίας
@@ -346,55 +350,62 @@ const OrderManagement = () => {
                         <td>{order.sizeName}</td>
                         <td>{order.storeTitle}</td>
                         <td>{order.userName}</td>
-                        <td>{order.status === 1 ? "Σε Εκκρεμότητα" : order.status === 2 ? "Ολοκληρωμένη" : "Ακυρωμένη"}</td>
                         <td>
-
+                            {order.status === 1
+                                ? "Σε Εκκρεμότητα"
+                                : order.status === 2
+                                    ? "Ολοκληρωμένη"
+                                    : "Ακυρωμένη"}
+                        </td>
+                        <td>
                             <div className="order-action-buttons">
-                                <button className="order-edit-button"
-                                        onClick={() => handleEditButtonClick(order.id)}>Επεξεργασία
+                                <button className="order-edit-button" onClick={() => handleEditButtonClick(order.id)}>
+                                    Επεξεργασία
                                 </button>
-                                <button
-                                    className="order-delete-button"
-                                    onClick={() => openConfirmationDialog(order)}
-                                >
+                                <button className="order-delete-button" onClick={() => openConfirmationDialog(order)}>
                                     Διαγραφή
                                 </button>
-
-                                {isConfirmationOpen && (
-                                    <div className="confirmation-dialog">
-                                        <div className="confirmation-content">
-                                            <p>Είστε σίγουροι ότι θέλετε να διαγράψετε το
-                                                προϊόν <strong>{orderToDelete.materialText}</strong>;</p>
-                                            <div className="order-button-group">
-                                                <button className="order-cancel-button"
-                                                        onClick={closeConfirmationDialog}>Ακύρωση
-                                                </button>
-                                                <button className="order-confirm-button"
-                                                        onClick={confirmDelete}>Επιβεβαίωση
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
-
                         </td>
                     </tr>
                 ))}
                 </tbody>
             </table>
+
+            {/* Single confirmation modal */}
+            {isConfirmationOpen && (
+                <div className="confirmation-dialog">
+                    <div className="confirmation-content">
+                        <p>
+                            Είστε σίγουροι ότι θέλετε να διαγράψετε την παραγγελία{" "}
+                            <strong>#{orderToDelete?.id}</strong>;
+                        </p>
+                        <div className="order-button-group">
+                            <button className="order-cancel-button" onClick={closeConfirmationDialog}>
+                                Ακύρωση
+                            </button>
+                            <button className="order-confirm-button" onClick={confirmDelete}>
+                                Επιβεβαίωση
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="pagination-controls">
                 <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 0}>
                     Προηγούμενη
                 </button>
                 <span>
-                    Σελίδα {currentPage + 1} από {totalPages}
-                </span>
-                <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage + 1 === totalPages}>
+          Σελίδα {currentPage + 1} από {totalPages}
+        </span>
+                <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage + 1 === totalPages}
+                >
                     Επόμενη
                 </button>
             </div>
-
         </div>
     );
 };

@@ -8,11 +8,11 @@ import {
     editStore,
     distributeMaterial,
     fetchMaterials,
-
 } from "../../services/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./StoreManagement.css";
+import { storeErrorToGreek } from "../../utils/storeErrors";
 
 const StoreManagement = () => {
     const [stores, setStores] = useState([]);
@@ -34,11 +34,13 @@ const StoreManagement = () => {
 
     const [showDistributionForm, setShowDistributionForm] = useState(false);
     const [distributionData, setDistributionData] = useState({
+        storeId: "",
         materialId: "",
         receiverStoreId: "",
         quantity: 0,
     });
 
+    const [materials, setMaterials] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -51,23 +53,19 @@ const StoreManagement = () => {
                 ]);
                 setStores(storeData);
                 setMaterials(materialsData);
-                const roles = loggedInUser.roles.map((role) => role.name);
-                if (roles.includes("SUPER_ADMIN")) {
-                    setLoggedInUserRole("SUPER_ADMIN");
-                } else if (roles.includes("LOCAL_ADMIN")) {
-                    setLoggedInUserRole("LOCAL_ADMIN");
-                }
+
+                const roles = (loggedInUser.roles || []).map((role) => role.name);
+                if (roles.includes("SUPER_ADMIN")) setLoggedInUserRole("SUPER_ADMIN");
+                else if (roles.includes("LOCAL_ADMIN")) setLoggedInUserRole("LOCAL_ADMIN");
             } catch (err) {
-                setError("Failed to fetch data.");
+                setError("Αποτυχία φόρτωσης δεδομένων.");
                 console.error("Error:", err);
+                toast.error(storeErrorToGreek(err, { op: "loadStores" }));
             }
         };
 
         loadData();
     }, []);
-
-    const [materials, setMaterials] = useState([]);
-
 
     const openConfirmationDialog = (store) => {
         setStoreToDelete(store);
@@ -82,23 +80,11 @@ const StoreManagement = () => {
     const confirmDelete = async () => {
         try {
             await deleteStore(storeToDelete.id);
-            setStores(stores.filter((store) => store.id !== storeToDelete.id));
+            setStores(stores.filter((s) => s.id !== storeToDelete.id));
             toast.success(`Η αποθήκη "${storeToDelete.title}" διαγράφηκε επιτυχώς.`);
         } catch (err) {
-            if (err.response) {
-                if (err.response.status === 403) {
-                    toast.error("Δεν έχετε δικαίωμα να διαγράψετε αποθήκες.");
-                } else if (err.response.status === 404) {
-                    toast.error("Η αποθήκη δεν βρέθηκε.");
-                } else if (err.response.status === 409) {
-                    toast.error(err.response.data.message); // Display specific backend message
-                } else {
-                    toast.error("Παρουσιάστηκε σφάλμα κατά τη διαγραφή της αποθήκης.");
-                }
-            } else {
-                console.error("Error deleting store:", err);
-                toast.error("Παρουσιάστηκε σφάλμα κατά τη διαγραφή της αποθήκης.");
-            }
+            console.error("Error deleting store:", err);
+            toast.error(storeErrorToGreek(err, { op: "deleteStore" }));
         } finally {
             closeConfirmationDialog();
         }
@@ -109,19 +95,12 @@ const StoreManagement = () => {
 
         try {
             await editStore(editingStore.id, editFormData);
-            setStores(
-                stores.map((store) =>
-                    store.id === editingStore.id ? { ...store, ...editFormData } : store
-                )
-            );
+            setStores(stores.map((s) => (s.id === editingStore.id ? { ...s, ...editFormData } : s)));
             toast.success("Η αποθήκη ενημερώθηκε επιτυχώς!");
             setEditingStore(null);
         } catch (err) {
-            if (err.response && err.response.status === 403) {
-                toast.error("Δεν έχετε δικαίωμα να επεξεργαστείτε αποθήκες.");
-            } else {
-                toast.error("Αποτυχία ενημέρωσης αποθήκης.");
-            }
+            console.error("edit store error:", err);
+            toast.error(storeErrorToGreek(err, { op: "editStore" }));
         }
     };
 
@@ -137,17 +116,15 @@ const StoreManagement = () => {
             setNewStore({ title: "", address: "", enable: 1 });
             toast.success("Η αποθήκη δημιουργήθηκε επιτυχώς.");
         } catch (err) {
-            if (err.response && err.response.status === 403) {
-                toast.error("Δεν έχετε δικαίωμα να δημιουργήσετε αποθήκες.");
-            } else {
-                toast.error("Αποτυχία δημιουργίας αποθήκης.");
-            }
+            console.error("create store error:", err);
+            toast.error(storeErrorToGreek(err, { op: "createStore" }));
         }
     };
 
     const handleDistributeMaterial = async () => {
         try {
             if (
+                !distributionData.storeId ||
                 !distributionData.materialId ||
                 !distributionData.receiverStoreId ||
                 !distributionData.quantity
@@ -157,24 +134,21 @@ const StoreManagement = () => {
             }
 
             const payload = {
-                materialId: distributionData.materialId,
-                receiverStoreId: distributionData.receiverStoreId,
-                quantity: distributionData.quantity,
+                materialId: Number(distributionData.materialId),
+                receiverStoreId: Number(distributionData.receiverStoreId),
+                quantity: Number(distributionData.quantity),
             };
 
             await distributeMaterial(payload);
             toast.success("Το υλικό μεταφέρθηκε επιτυχώς!");
             setShowDistributionForm(false);
-            setDistributionData({ materialId: "", receiverStoreId: "", quantity: 0 });
-        } catch (error) {
-            if (error.response && error.response.status === 403) {
-                toast.error("Δεν έχετε δικαίωμα να μεταφέρετε υλικά.");
-            } else {
-                toast.error("Αποτυχία μεταφοράς υλικού.");
-            }
+            setDistributionData({ storeId: "", materialId: "", receiverStoreId: "", quantity: 0 });
+        } catch (err) {
+            console.error("distribute material error:", err);
+            // δεν είναι καθαρά "store" λάθη, αλλά δείξε ένα γενικό μήνυμα
+            toast.error("Αποτυχία μεταφοράς υλικού.");
         }
     };
-
 
     return (
         <div className="store-management-container">
@@ -192,26 +166,20 @@ const StoreManagement = () => {
                         type="text"
                         placeholder="Εισάγετε τίτλο αποθήκης"
                         value={newStore.title}
-                        onChange={(e) =>
-                            setNewStore({ ...newStore, title: e.target.value })
-                        }
+                        onChange={(e) => setNewStore({ ...newStore, title: e.target.value })}
                     />
                     <input
                         type="text"
                         placeholder="Εισάγετε διεύθυνση αποθήκης"
                         value={newStore.address}
-                        onChange={(e) =>
-                            setNewStore({ ...newStore, address: e.target.value })
-                        }
+                        onChange={(e) => setNewStore({ ...newStore, address: e.target.value })}
                     />
                     <label>
                         Enable:
                         <input
                             type="checkbox"
                             checked={newStore.enable === 1}
-                            onChange={(e) =>
-                                setNewStore({ ...newStore, enable: e.target.checked ? 1 : 0 })
-                            }
+                            onChange={(e) => setNewStore({ ...newStore, enable: e.target.checked ? 1 : 0 })}
                         />
                     </label>
                     <button className="create-button" onClick={handleCreate}>
@@ -231,10 +199,7 @@ const StoreManagement = () => {
                             Ακύρωση
                         </button>
                     </div>
-                    <button
-                        className="distribution-button"
-                        onClick={() => setShowDistributionForm(true)}
-                    >
+                    <button className="distribution-button" onClick={() => setShowDistributionForm(true)}>
                         Μεταφορά Υλικών
                     </button>
                 </div>
@@ -254,39 +219,35 @@ const StoreManagement = () => {
                     <tr key={store.id}>
                         <td>{store.title}</td>
                         <td>{store.address}</td>
-                        <td>{store.enable === 1 ? "Active" : "Inactive"}</td>
+                        <td>{store.enable === 1 ? "Ενεργή" : "Ανενεργή"}</td>
                         <td>
-                                <div>
-                                    <button
-                                        className="edit-button"
-                                        onClick={() => {
-                                            setEditingStore(store);
-                                            setEditFormData({
-                                                title: store.title,
-                                                address: store.address,
-                                                enable: store.enable,
-                                            });
-                                        }}
-                                    >
-                                        Επεξεργασία
-                                    </button>
-                                    <button
-                                        className="view-button"
-                                        onClick={() =>
-                                            navigate(
-                                                `/dashboard/manage-stores/${store.id}/materials`
-                                            )
-                                        }
-                                    >
-                                        <i className="fa fa-eye"></i> Προβολή
-                                    </button>
-                                    <button
-                                        className="delete-button"
-                                        onClick={() => openConfirmationDialog(store)}
-                                    >
-                                        Διαγραφή
-                                    </button>
-                                </div>
+                            <div>
+                                <button
+                                    className="edit-button"
+                                    onClick={() => {
+                                        setEditingStore(store);
+                                        setEditFormData({
+                                            title: store.title,
+                                            address: store.address,
+                                            enable: store.enable,
+                                        });
+                                    }}
+                                >
+                                    Επεξεργασία
+                                </button>
+                                <button
+                                    className="view-button"
+                                    onClick={() => navigate(`/dashboard/manage-stores/${store.id}/materials`)}
+                                >
+                                    <i className="fa fa-eye"></i> Προβολή
+                                </button>
+                                <button
+                                    className="delete-button"
+                                    onClick={() => openConfirmationDialog(store)}
+                                >
+                                    Διαγραφή
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 ))}
@@ -301,17 +262,13 @@ const StoreManagement = () => {
                         type="text"
                         placeholder="Τίτλος"
                         value={editFormData.title}
-                        onChange={(e) =>
-                            setEditFormData({ ...editFormData, title: e.target.value })
-                        }
+                        onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
                     />
                     <input
                         type="text"
                         placeholder="Διεύθυνση"
                         value={editFormData.address}
-                        onChange={(e) =>
-                            setEditFormData({ ...editFormData, address: e.target.value })
-                        }
+                        onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
                     />
                     <div className="checkbox-container">
                         <label>Enable:</label>
@@ -327,10 +284,7 @@ const StoreManagement = () => {
                         />
                     </div>
                     <div className="edit-actions">
-                        <button
-                            className="cancel-button"
-                            onClick={() => setEditingStore(null)}
-                        >
+                        <button className="cancel-button" onClick={() => setEditingStore(null)}>
                             Ακύρωση
                         </button>
                         <button className="save-button" onClick={handleUpdateStore}>
@@ -339,6 +293,7 @@ const StoreManagement = () => {
                     </div>
                 </div>
             )}
+
             {/* Distribution Form */}
             {showDistributionForm && (
                 <div className="distribution-modal">
@@ -367,20 +322,15 @@ const StoreManagement = () => {
                     {/* Second Dropdown: Select Material (Filtered by Selected Store) */}
                     <select
                         value={distributionData.materialId}
-                        onChange={(e) =>
-                            setDistributionData({
-                                ...distributionData,
-                                materialId: e.target.value,
-                            })
-                        }
-                        disabled={!distributionData.storeId} // Disable if no store is selected
+                        onChange={(e) => setDistributionData({ ...distributionData, materialId: e.target.value })}
+                        disabled={!distributionData.storeId}
                     >
                         <option value="">Επιλέξτε Υλικό</option>
                         {materials
-                            .filter((material) => material.storeId === Number(distributionData.storeId))
-                            .map((material) => (
-                                <option key={material.id} value={material.id}>
-                                    {material.text} - Μέγεθος: {material.sizeName}
+                            .filter((m) => m.storeId === Number(distributionData.storeId))
+                            .map((m) => (
+                                <option key={m.id} value={m.id}>
+                                    {m.text} - Μέγεθος: {m.sizeName}
                                 </option>
                             ))}
                     </select>
@@ -388,19 +338,14 @@ const StoreManagement = () => {
                     {/* Third Dropdown: Select Receiver Store */}
                     <select
                         value={distributionData.receiverStoreId}
-                        onChange={(e) =>
-                            setDistributionData({
-                                ...distributionData,
-                                receiverStoreId: e.target.value,
-                            })
-                        }
+                        onChange={(e) => setDistributionData({ ...distributionData, receiverStoreId: e.target.value })}
                     >
                         <option value="">Επιλέξτε Αποθήκη Προορισμού</option>
                         {stores
-                            .filter((store) => store.id !== Number(distributionData.storeId)) // Exclude selected source store
-                            .map((store) => (
-                                <option key={store.id} value={store.id}>
-                                    {store.title}
+                            .filter((s) => s.id !== Number(distributionData.storeId))
+                            .map((s) => (
+                                <option key={s.id} value={s.id}>
+                                    {s.title}
                                 </option>
                             ))}
                     </select>
@@ -410,12 +355,7 @@ const StoreManagement = () => {
                         type="number"
                         placeholder="Ποσότητα"
                         value={distributionData.quantity}
-                        onChange={(e) =>
-                            setDistributionData({
-                                ...distributionData,
-                                quantity: e.target.value,
-                            })
-                        }
+                        onChange={(e) => setDistributionData({ ...distributionData, quantity: e.target.value })}
                     />
 
                     <div className="button-container">
@@ -429,8 +369,6 @@ const StoreManagement = () => {
                 </div>
             )}
 
-
-
             {/* Confirmation Dialog */}
             {showConfirmation && (
                 <div className="confirmation-dialog">
@@ -440,16 +378,10 @@ const StoreManagement = () => {
                             <strong>{storeToDelete?.title}</strong>;
                         </p>
                         <div className="store-button-group">
-                            <button
-                                className="store-cancel-button"
-                                onClick={closeConfirmationDialog}
-                            >
-                            Ακύρωση
+                            <button className="store-cancel-button" onClick={closeConfirmationDialog}>
+                                Ακύρωση
                             </button>
-                            <button
-                                className="store-confirm-button"
-                                onClick={confirmDelete}
-                            >
+                            <button className="store-confirm-button" onClick={confirmDelete}>
                                 Επιβεβαίωση
                             </button>
                         </div>

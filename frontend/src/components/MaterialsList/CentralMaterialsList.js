@@ -1,10 +1,18 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchAllMaterialsPaginated, fetchSizes, deleteMaterial, editMaterial, fetchUserDetails, fetchStores } from "../../services/api";
+import {
+    fetchAllMaterialsPaginated,
+    fetchSizes,
+    deleteMaterial,
+    editMaterial,
+    fetchUserDetails,
+    fetchStores
+} from "../../services/api";
 import "./MaterialsList.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import AddMaterialModal from "./AddMaterialModal"; // Import the new modal component
+import AddMaterialModal from "./AddMaterialModal";
+import { materialErrorToGreek } from "../../utils/materialErrors";
 
 const CentralMaterialsList = () => {
     const navigate = useNavigate();
@@ -21,36 +29,29 @@ const CentralMaterialsList = () => {
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [materialToDelete, setMaterialToDelete] = useState(null);
     const [loggedInUserRole, setLoggedInUserRole] = useState("");
-    const [userStoreId, setUserStoreId] = useState(null); // Store ID for LOCAL_ADMIN
-    const [showAddModal, setShowAddModal] = useState(false); // State for showing add modal
+    const [userStoreId, setUserStoreId] = useState(null);
+    const [showAddModal, setShowAddModal] = useState(false);
     const [error, setError] = useState("");
-
 
     useEffect(() => {
         const loadUserDetails = async () => {
             try {
                 const userDetails = await fetchUserDetails();
-                const roles = userDetails.roles.map((role) => role.name);
-
-                // Check and set the user's role
-                if (roles.includes("SUPER_ADMIN")) {
-                    setLoggedInUserRole("SUPER_ADMIN");
-                } else if (roles.includes("LOCAL_ADMIN")) {
+                const roles = (userDetails.roles || []).map((role) => role.name);
+                if (roles.includes("SUPER_ADMIN")) setLoggedInUserRole("SUPER_ADMIN");
+                else if (roles.includes("LOCAL_ADMIN")) {
                     setLoggedInUserRole("LOCAL_ADMIN");
-                    // Set user's store ID if they are LOCAL_ADMIN
-                    if (userDetails.store && userDetails.store.id) {
-                        setUserStoreId(userDetails.store.id);
-                    }
+                    if (userDetails.store?.id) setUserStoreId(userDetails.store.id);
                 } else {
                     console.error("Unrecognized role");
                 }
             } catch (err) {
                 console.error("Failed to fetch user details", err);
+                toast.error("Αποτυχία φόρτωσης στοιχείων χρήστη.");
             }
         };
         loadUserDetails();
     }, []);
-
 
     const loadMaterials = useCallback(async () => {
         try {
@@ -58,8 +59,9 @@ const CentralMaterialsList = () => {
             setMaterials(response.content || []);
             setTotalPages(response.totalPages || 0);
         } catch (err) {
-            setError("Failed to fetch materials.");
+            setError("Αποτυχία φόρτωσης προϊόντων.");
             console.error(err);
+            toast.error(materialErrorToGreek(err, { op: "loadMaterials" }));
         }
     }, [currentPage, filterText, filterSize]);
 
@@ -68,8 +70,9 @@ const CentralMaterialsList = () => {
             const sizesData = await fetchSizes();
             setSizes(sizesData);
         } catch (err) {
-            setError("Failed to fetch sizes.");
+            setError("Αποτυχία φόρτωσης μεγεθών.");
             console.error(err);
+            toast.error("Αποτυχία φόρτωσης μεγεθών.");
         }
     }, []);
 
@@ -78,8 +81,9 @@ const CentralMaterialsList = () => {
             const storesData = await fetchStores();
             setStores(storesData);
         } catch (err) {
-            setError("Failed to fetch stores.");
+            setError("Αποτυχία φόρτωσης αποθηκών.");
             console.error(err);
+            toast.error("Αποτυχία φόρτωσης αποθηκών.");
         }
     }, []);
 
@@ -88,7 +92,6 @@ const CentralMaterialsList = () => {
         loadSizes();
         loadStores();
     }, [loadMaterials, loadSizes, loadStores]);
-
 
     const handleEditClick = (material) => {
         if (loggedInUserRole !== "SUPER_ADMIN") {
@@ -99,7 +102,7 @@ const CentralMaterialsList = () => {
         setEditFormData({
             text: material.text,
             sizeId: material.sizeId,
-            quantity: material.quantity,
+            quantity: material.quantity
         });
     };
 
@@ -108,17 +111,42 @@ const CentralMaterialsList = () => {
             toast.error("Δεν έχετε δικαίωμα να αποθηκεύσετε αλλαγές.");
             return;
         }
+
+        // basic validation
+        const qty = Number(editFormData.quantity);
+        if (!editFormData.text.trim()) {
+            toast.error("Παρακαλώ συμπληρώστε την περιγραφή προϊόντος.");
+            return;
+        }
+        if (!editFormData.sizeId) {
+            toast.error("Παρακαλώ επιλέξτε μέγεθος.");
+            return;
+        }
+        if (!qty || qty <= 0) {
+            toast.error("Παρακαλώ συμπληρώστε έγκυρη ποσότητα.");
+            return;
+        }
+
         try {
-            await editMaterial(editingMaterial.id, editFormData);
+            await editMaterial(editingMaterial.id, {
+                text: editFormData.text.trim(),
+                sizeId: editFormData.sizeId,
+                quantity: qty
+            });
             setEditingMaterial(null);
             loadMaterials();
             toast.success("Το προϊόν ενημερώθηκε επιτυχώς!");
         } catch (err) {
             console.error("Αποτυχία ενημέρωσης προϊόντος", err);
-            toast.error("Αποτυχία ενημέρωσης προϊόντος.");
+            const sizeName =
+                sizes.find((s) => String(s.id) === String(editFormData.sizeId))?.name;
+            toast.error(materialErrorToGreek(err, {
+                op: "editMaterial",
+                text: editFormData.text,
+                sizeName
+            }));
         }
     };
-
 
     const openConfirmationDialog = (material) => {
         setMaterialToDelete(material);
@@ -133,40 +161,19 @@ const CentralMaterialsList = () => {
     const confirmDelete = async () => {
         try {
             await deleteMaterial(materialToDelete.id);
-            setMaterials(materials.filter((m) => m.id !== materialToDelete.id));
+            setMaterials((list) => list.filter((m) => m.id !== materialToDelete.id));
             toast.success("Το προϊόν διαγράφηκε επιτυχώς!");
         } catch (err) {
             console.error("Αποτυχία διαγραφής προϊόντος", err);
-
-            if (err.response) {
-                if (err.response.status === 403) {
-                    // When the user does not have the permission to delete the material
-                    toast.error("Δεν έχετε δικαίωμα να διαγράψετε προϊόντα.");
-                } else if (err.response.status === 409) {
-                    // Backend should return 409 (Conflict) if there are associated orders
-                    toast.error(
-                        "Δεν είναι δυνατή η διαγραφή του προϊόντος, καθώς υπάρχουν σχετικές παραγγελίες."
-                    );
-                } else if (err.response.status === 404) {
-                    // Material not found
-                    toast.error("Το προϊόν δεν βρέθηκε.");
-                } else {
-                    // General error
-                    toast.error("Αποτυχία διαγραφής προϊόντος.");
-                }
-            } else {
-                // Network or other error
-                toast.error("Παρουσιάστηκε σφάλμα κατά τη διαγραφή του προϊόντος.");
-            }
+            toast.error(materialErrorToGreek(err, { op: "deleteMaterial" }));
         } finally {
             closeConfirmationDialog();
         }
     };
 
-
     const getStoreTitle = (storeId) => {
-        const store = stores.find(store => store.id === storeId);
-        return store ? store.title : '';
+        const store = stores.find((s) => s.id === storeId);
+        return store ? store.title : "";
     };
 
     return (
@@ -194,7 +201,6 @@ const CentralMaterialsList = () => {
                         </option>
                     ))}
                 </select>
-                {/* Add Material Button */}
                 <button
                     className="create-button"
                     style={{ backgroundColor: "#28a745", marginLeft: "10px" }}
@@ -204,7 +210,6 @@ const CentralMaterialsList = () => {
                 </button>
             </div>
 
-            {/* Materials Table */}
             <table className="materials-table">
                 <thead>
                 <tr>
@@ -222,10 +227,8 @@ const CentralMaterialsList = () => {
                             <td>{material.text}</td>
                             <td>{material.sizeName}</td>
                             <td>{material.quantity}</td>
-                            <td>{getStoreTitle(material.storeId)}</td> {/* Get store title instead of ID */}
-
+                            <td>{getStoreTitle(material.storeId)}</td>
                             <td>
-
                                 <>
                                     <button
                                         className="view-button"
@@ -240,7 +243,6 @@ const CentralMaterialsList = () => {
                                         Διαγραφή
                                     </button>
                                 </>
-
                             </td>
                         </tr>
                     ))
@@ -252,7 +254,6 @@ const CentralMaterialsList = () => {
                 </tbody>
             </table>
 
-            {/* Pagination Controls */}
             <div className="pagination">
                 <button
                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
@@ -261,9 +262,7 @@ const CentralMaterialsList = () => {
                 >
                     Προηγούμενη
                 </button>
-                <span>
-                    Σελίδα {currentPage + 1} από {totalPages}
-                </span>
+                <span>Σελίδα {currentPage + 1} από {totalPages}</span>
                 <button
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))}
                     disabled={currentPage >= totalPages - 1}
@@ -273,7 +272,6 @@ const CentralMaterialsList = () => {
                 </button>
             </div>
 
-            {/* Edit Modal */}
             {editingMaterial && (
                 <div className="edit-modal-materials">
                     <h3>Επεξεργασία Προϊόντος</h3>
@@ -300,25 +298,17 @@ const CentralMaterialsList = () => {
                         value={editFormData.quantity}
                         onChange={(e) => setEditFormData({ ...editFormData, quantity: e.target.value })}
                     />
-                    {/* Centered Buttons */}
                     <div className="button-group">
-                        <button
-                            className="materials-cancel-button"
-                            onClick={() => setEditingMaterial(null)}
-                        >
+                        <button className="materials-cancel-button" onClick={() => setEditingMaterial(null)}>
                             Ακύρωση
                         </button>
-                        <button
-                            className="materials-confirm-button"
-                            onClick={handleSaveEdit}
-                        >
+                        <button className="materials-confirm-button" onClick={handleSaveEdit}>
                             Αποθήκευση
                         </button>
                     </div>
                 </div>
             )}
 
-            {/* Delete Confirmation Dialog */}
             {showConfirmation && (
                 <div className="confirmation-dialog">
                     <div className="confirmation-content">
@@ -326,18 +316,11 @@ const CentralMaterialsList = () => {
                             Είστε σίγουροι ότι θέλετε να διαγράψετε το προϊόν{" "}
                             <strong>{materialToDelete?.text}</strong>;
                         </p>
-                        {/* Centered Buttons */}
                         <div className="materials-button-group">
-                            <button
-                                className="materials-cancel-button"
-                                onClick={closeConfirmationDialog}
-                            >
+                            <button className="materials-cancel-button" onClick={closeConfirmationDialog}>
                                 Ακύρωση
                             </button>
-                            <button
-                                className="materials-confirm-button"
-                                onClick={confirmDelete}
-                            >
+                            <button className="materials-confirm-button" onClick={confirmDelete}>
                                 Επιβεβαίωση
                             </button>
                         </div>

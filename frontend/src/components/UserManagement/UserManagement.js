@@ -11,6 +11,7 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./UserManagement.css";
+import { userErrorToGreek } from "../../utils/userErrors";
 
 const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/;
 
@@ -47,8 +48,9 @@ const UserManagement = () => {
                 else if (roles.includes("LOCAL_ADMIN")) setLoggedInUserRole("LOCAL_ADMIN");
                 else setLoggedInUserRole("");
             } catch (err) {
-                setError("Failed to fetch data.");
+                setError("Αποτυχία φόρτωσης δεδομένων.");
                 console.error("Error:", err);
+                toast.error(userErrorToGreek(err));
             }
         };
 
@@ -71,31 +73,18 @@ const UserManagement = () => {
             setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
             toast.success(`Ο χρήστης "${userToDelete.username}" διαγράφηκε επιτυχώς.`);
         } catch (err) {
-            if (err.response) {
-                const status = err.response.status;
-                const errorMessage = err.response.data?.message;
-                if (status === 403) {
-                    toast.error(errorMessage || "Μη εξουσιοδοτημένη ενέργεια.");
-                } else if (status === 409) {
-                    toast.error("Υπάρχουν συνδεδεμένα δεδομένα.");
-                } else if (status === 404) {
-                    toast.error("Ο χρήστης δεν βρέθηκε.");
-                } else {
-                    toast.error("Παρουσιάστηκε σφάλμα κατά τη διαγραφή του χρήστη.");
-                }
-            } else {
-                console.error("Error deleting user:", err);
-                toast.error("Παρουσιάστηκε σφάλμα κατά τη διαγραφή του χρήστη.");
-            }
+            console.error("Error deleting user:", err);
+            toast.error(userErrorToGreek(err));
         } finally {
             closeConfirmationDialog();
         }
     };
 
     const handleToggleUserStatus = async (user) => {
-        const prev = user.enable;            // 0 or 1
+        const prev = user.enable;            // 0 ή 1
         const next = prev === 1 ? 0 : 1;     // flip
 
+        // optimistic update
         setUsers(list => list.map(u => u.id === user.id ? { ...u, enable: next } : u));
 
         try {
@@ -113,15 +102,13 @@ const UserManagement = () => {
             // rollback
             setUsers(list => list.map(u => u.id === user.id ? { ...u, enable: prev } : u));
             console.error("toggle error:", err?.response?.status, err?.response?.data);
-            toast.error(err?.response?.data?.message || "Παρουσιάστηκε σφάλμα κατά την ενημέρωση του χρήστη.");
+            toast.error(userErrorToGreek(err));
         }
     };
 
     const handleCreate = async () => {
         if (!newUser.username.trim() || !newUser.password.trim() || !newUser.storeId) {
-            toast.warning(
-                "Το Όνομα Χρήστη, ο Κωδικός Πρόσβασης και η επιλογή Αποθήκης είναι απαραίτητα."
-            );
+            toast.warning("Το Όνομα Χρήστη, ο Κωδικός Πρόσβασης και η επιλογή Αποθήκης είναι απαραίτητα.");
             return;
         }
 
@@ -158,26 +145,8 @@ const UserManagement = () => {
 
             toast.success("Ο χρήστης δημιουργήθηκε επιτυχώς.");
         } catch (err) {
-            if (err.response) {
-                if (err.response.status === 403) {
-                    toast.error("Δεν έχετε δικαίωμα να δημιουργήσετε χρήστες.");
-                } else if (err.response.status === 409) {
-                    toast.error(
-                        "Το όνομα χρήστη υπάρχει ήδη. Παρακαλώ επιλέξτε διαφορετικό όνομα χρήστη."
-                    );
-                } else if (err.response.status === 400) {
-                    const msg =
-                        err.response.data?.errors?.password ||
-                        err.response.data?.message ||
-                        "Μη έγκυρα δεδομένα.";
-                    toast.error(msg);
-                } else {
-                    toast.error("Παρουσιάστηκε σφάλμα κατά τη δημιουργία του χρήστη.");
-                }
-            } else {
-                console.error("Error creating user:", err);
-                toast.error("Παρουσιάστηκε σφάλμα κατά τη δημιουργία του χρήστη.");
-            }
+            console.error("Error creating user:", err);
+            toast.error(userErrorToGreek(err));
         }
     };
 
@@ -218,7 +187,6 @@ const UserManagement = () => {
                         value={newUser.role}
                         onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                     >
-                        {/* keep a visible label, but default role is LOCAL_ADMIN so no empty value is submitted */}
                         <option value="SUPER_ADMIN">Super Admin</option>
                         <option value="LOCAL_ADMIN">Local Admin</option>
                     </select>
@@ -287,7 +255,7 @@ const UserManagement = () => {
                     <tr key={user.id}>
                         <td>{user.username}</td>
                         <td>{(user.roles || []).map((r) => r.name).join(", ")}</td>
-                        <td>{user.enable === 1 ? "Active" : "Inactive"}</td>
+                        <td>{user.enable === 1 ? "Ενεργός" : "Ανενεργός"}</td>
                         <td>{user.store?.title || "N/A"}</td>
                         <td>
                             <div className="user-actions">
@@ -304,13 +272,10 @@ const UserManagement = () => {
                                                 ? "Μόνο ο Super Admin μπορεί να αλλάξει την κατάσταση"
                                                 : "Ενεργοποίηση/Απενεργοποίηση χρήστη"
                                         }
-
-                                        />
+                                    />
                                     <label
                                         htmlFor={`enable-${user.id}`}
-                                        className={`status-text ${
-                                            user.enable === 1 ? "active" : "inactive"
-                                        }`}
+                                        className={`status-text ${user.enable === 1 ? "active" : "inactive"}`}
                                     >
                                         {user.enable === 1 ? "Ενεργός" : "Ανενεργός"}
                                     </label>

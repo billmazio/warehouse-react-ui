@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchSizes, fetchStores, createMaterial } from "../../services/api";
 import { toast } from "react-toastify";
+import { materialErrorToGreek } from "../../utils/materialErrors";
 
 const AddMaterialModal = ({ show, onClose, userRole, userStoreId, onMaterialAdded }) => {
     const [formData, setFormData] = useState({
@@ -94,7 +95,15 @@ const AddMaterialModal = ({ show, onClose, userRole, userStoreId, onMaterialAdde
             onClose(); // Close the modal
         } catch (err) {
             console.error("Error creating material:", err);
-            toast.error("Παρουσιάστηκε σφάλμα κατά την προσθήκη του προϊόντος.");
+                 const sizeName =
+                       (sizes || []).find((s) => String(s.id) === String(formData.sizeId))?.name;
+                 const msg = materialErrorToGreek(err, {
+                       op: "createMaterial",
+                       text: formData.text?.trim(),
+                   sizeName
+                 });
+                 toast.error(msg);
+
         }
     };
 
@@ -107,7 +116,7 @@ const AddMaterialModal = ({ show, onClose, userRole, userStoreId, onMaterialAdde
             {error && <p className="error-message">{error}</p>}
 
             {loading ? (
-                <p style={{ textAlign: 'center' }}>Φόρτωση...</p>
+                <p style={{ textAlign: "center" }}>Φόρτωση...</p>
             ) : (
                 <>
                     <input
@@ -159,29 +168,18 @@ const AddMaterialModal = ({ show, onClose, userRole, userStoreId, onMaterialAdde
                             ))}
                         </select>
                     ) : (
-                        <div style={{ padding: '10px', backgroundColor: '#e9e9e9', borderRadius: '4px' }}>
-                            <strong>Αποθήκη:</strong> {stores.find(s => s.id === userStoreId)?.title || "Η αποθήκη σας"}
-                            <input
-                                type="hidden"
-                                name="storeId"
-                                value={userStoreId || ""}
-                            />
+                        <div style={{ padding: "10px", backgroundColor: "#e9e9e9", borderRadius: "4px" }}>
+                            <strong>Αποθήκη:</strong>{" "}
+                            {stores.find((s) => s.id === userStoreId)?.title || "Η αποθήκη σας"}
+                            <input type="hidden" name="storeId" value={userStoreId || ""} />
                         </div>
                     )}
 
                     <div className="button-group">
-                        <button
-                            type="button"
-                            className="cancel-button"
-                            onClick={onClose}
-                        >
+                        <button type="button" className="cancel-button" onClick={onClose}>
                             Ακύρωση
                         </button>
-                        <button
-                            type="button"
-                            className="save-button"
-                            onClick={handleSubmit}
-                        >
+                        <button type="button" className="save-button" onClick={handleSubmit}>
                             Προσθήκη
                         </button>
                     </div>
