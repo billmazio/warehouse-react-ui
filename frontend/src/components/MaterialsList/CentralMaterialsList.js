@@ -94,10 +94,10 @@ const CentralMaterialsList = () => {
     }, [loadMaterials, loadSizes, loadStores]);
 
     const handleEditClick = (material) => {
-        if (loggedInUserRole !== "SUPER_ADMIN") {
+  /*      if (loggedInUserRole !== "SUPER_ADMIN") {
             toast.error("Δεν έχετε δικαίωμα να επεξεργαστείτε προϊόντα.");
             return;
-        }
+        }*/
         setEditingMaterial(material);
         setEditFormData({
             text: material.text,
@@ -107,10 +107,10 @@ const CentralMaterialsList = () => {
     };
 
     const handleSaveEdit = async () => {
-        if (loggedInUserRole !== "SUPER_ADMIN") {
+       /* if (loggedInUserRole !== "SUPER_ADMIN") {
             toast.error("Δεν έχετε δικαίωμα να αποθηκεύσετε αλλαγές.");
             return;
-        }
+        }*/
 
         // basic validation
         const qty = Number(editFormData.quantity);
@@ -231,13 +231,20 @@ const CentralMaterialsList = () => {
                             <td>
                                 <>
                                     <button
-                                        className="view-button"
+                                        className="edit-button"
+                                        title="Επεξεργασία"
                                         onClick={() => handleEditClick(material)}
                                     >
                                         <i className="fa fa-edit"></i> Επεξεργασία
                                     </button>
                                     <button
                                         className="delete-button"
+                                        disabled={loggedInUserRole !== "SUPER_ADMIN"}
+                                        title={
+                                            loggedInUserRole !== "SUPER_ADMIN"
+                                                ? "Μόνο ο Super Admin μπορεί να διαγράψει προιόντα"
+                                                : "Διαγραφή"
+                                        }
                                         onClick={() => openConfirmationDialog(material)}
                                     >
                                         <i className="fa fa-trash"></i> Διαγραφή

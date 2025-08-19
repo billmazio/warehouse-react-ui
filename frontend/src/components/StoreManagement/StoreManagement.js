@@ -255,27 +255,41 @@ const StoreManagement = () => {
                         </td>
                         <td>
                             <div className="action-buttons">
-                                {/* Toggle Status Button */}
+                                {/* Toggle Status Button (unchanged) */}
                                 <button
-                                    className={`toggle-button ${store.enable === 1 ? 'deactivate' : 'activate'}`}
+                                    className={`toggle-button ${store.enable === 1 ? "deactivate" : "activate"}`}
                                     onClick={() => handleToggleStoreStatus(store)}
-                                    title={store.enable === 1 ? 'Απενεργοποίηση αποθήκης' : 'Ενεργοποίηση αποθήκης'}
+                                    disabled={loggedInUserRole !== "SUPER_ADMIN"}
+                                    title={
+                                        loggedInUserRole !== "SUPER_ADMIN"
+                                            ? "Μόνο ο Super Admin μπορεί να αλλάξει την κατάσταση"
+                                            : store.enable === 1
+                                                ? "Απενεργοποίηση αποθήκης"
+                                                : "Ενεργοποίηση αποθήκης"
+                                    }
                                 >
                                     {store.enable === 1 ? (
                                         <>
-                                            <i className="fa fa-toggle-on"></i> Απενεργοποίηση
+                                            <i className="fa fa-toggle-on" /> Απενεργοποίηση
                                         </>
                                     ) : (
                                         <>
-                                            <i className="fa fa-toggle-off"></i> Ενεργοποίηση
+                                            <i className="fa fa-toggle-off" /> Ενεργοποίηση
                                         </>
                                     )}
                                 </button>
 
-                                {/* Edit Button */}
+                                {/* Edit (only SUPER_ADMIN) */}
                                 <button
                                     className="edit-button"
+                                    disabled={loggedInUserRole !== "SUPER_ADMIN"}
+                                    title={
+                                        loggedInUserRole !== "SUPER_ADMIN"
+                                            ? "Μόνο ο Super Admin μπορεί να επεξεργαστεί αποθήκες"
+                                            : "Επεξεργασία"
+                                    }
                                     onClick={() => {
+                                        if (loggedInUserRole !== "SUPER_ADMIN") return;
                                         setEditingStore(store);
                                         setEditFormData({
                                             title: store.title,
@@ -284,23 +298,37 @@ const StoreManagement = () => {
                                         });
                                     }}
                                 >
-                                    <i className="fa fa-edit"></i> Επεξεργασία
+                                    <i className="fa fa-edit" /> Επεξεργασία
                                 </button>
 
-                                {/* View Button */}
+                                {/* View is disabled when the store is inactive */}
                                 <button
                                     className="view-button"
-                                    onClick={() => navigate(`/dashboard/manage-stores/${store.id}/materials`)}
+                                    disabled={store.enable !== 1}
+                                    title={store.enable !== 1 ? "Η αποθήκη είναι ανενεργή" : "Προβολή"}
+                                    onClick={() => {
+                                        if (store.enable !== 1) return;
+                                        navigate(`/dashboard/manage-stores/${store.id}/materials`);
+                                    }}
                                 >
-                                    <i className="fa fa-eye"></i> Προβολή
+                                    <i className="fa fa-eye" /> Προβολή
                                 </button>
 
-                                {/* Delete Button */}
+                                {/* Delete (only SUPER_ADMIN) */}
                                 <button
                                     className="delete-button"
-                                    onClick={() => openConfirmationDialog(store)}
+                                    disabled={loggedInUserRole !== "SUPER_ADMIN"}
+                                    title={
+                                        loggedInUserRole !== "SUPER_ADMIN"
+                                            ? "Μόνο ο Super Admin μπορεί να διαγράψει αποθήκες"
+                                            : "Διαγραφή"
+                                    }
+                                    onClick={() => {
+                                        if (loggedInUserRole !== "SUPER_ADMIN") return;
+                                        openConfirmationDialog(store);
+                                    }}
                                 >
-                                    <i className="fa fa-trash"></i> Διαγραφή
+                                    <i className="fa fa-trash" /> Διαγραφή
                                 </button>
                             </div>
                         </td>

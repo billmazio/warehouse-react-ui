@@ -255,17 +255,12 @@ const UserManagement = () => {
                     <tr key={user.id}>
                         <td>{user.username}</td>
                         <td>{(user.roles || []).map((r) => r.name).join(", ")}</td>
-
-                        {/* STATUS like Store */}
                         <td>
     <span className={`status-badge ${user.enable === 1 ? "active" : "inactive"}`}>
       {user.enable === 1 ? "Ενεργός" : "Ανενεργός"}
     </span>
                         </td>
-
                         <td>{user.store?.title || "N/A"}</td>
-
-                        {/* ACTIONS like Store */}
                         <td>
                             <div className="action-buttons">
                                 <button
@@ -291,7 +286,14 @@ const UserManagement = () => {
                                     )}
                                 </button>
 
-                                <button className="delete-button" onClick={() => openConfirmationDialog(user)}>
+                                <button className="delete-button"
+                                        disabled={loggedInUserRole !== "SUPER_ADMIN"}
+                                        title={
+                                            loggedInUserRole !== "SUPER_ADMIN"
+                                                ? "Μόνο ο Super Admin μπορεί να διαγράψει χρήστες"
+                                                : "Διαγραφή"
+                                        }
+                                        onClick={() => openConfirmationDialog(user)}>
                                     <i className="fa fa-trash"></i> Διαγραφή
                                 </button>
                             </div>

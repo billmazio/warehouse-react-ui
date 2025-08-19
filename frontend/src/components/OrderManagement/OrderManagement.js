@@ -359,10 +359,11 @@ const OrderManagement = () => {
                         </td>
                         <td>
                             <div className="order-action-buttons">
-                                <button className="order-edit-button" onClick={() => handleEditButtonClick(order.id)}>
+
+                                <button className="order-edit-button" title="Επεξεργασία" onClick={() => handleEditButtonClick(order.id)}>
                                     <i className="fa fa-edit"></i> Επεξεργασία
                                 </button>
-                                <button className="order-delete-button" onClick={() => openConfirmationDialog(order)}>
+                                <button className="order-delete-button" title="Διαγραφή" onClick={() => openConfirmationDialog(order)}>
                                     <i className="fa fa-trash"></i> Διαγραφή
                                 </button>
                             </div>
