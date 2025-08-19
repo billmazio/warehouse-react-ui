@@ -234,13 +234,13 @@ const CentralMaterialsList = () => {
                                         className="view-button"
                                         onClick={() => handleEditClick(material)}
                                     >
-                                        Επεξεργασία
+                                        <i className="fa fa-edit"></i> Επεξεργασία
                                     </button>
                                     <button
                                         className="delete-button"
                                         onClick={() => openConfirmationDialog(material)}
                                     >
-                                        Διαγραφή
+                                        <i className="fa fa-trash"></i> Διαγραφή
                                     </button>
                                 </>
                             </td>

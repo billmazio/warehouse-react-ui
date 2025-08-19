@@ -8,11 +8,14 @@ import {
     editStore,
     distributeMaterial,
     fetchMaterials,
+    toggleStoreStatus as apiToggleStoreStatus,
 } from "../../services/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./StoreManagement.css";
 import { storeErrorToGreek } from "../../utils/storeErrors";
+
+
 
 const StoreManagement = () => {
     const [stores, setStores] = useState([]);
@@ -101,6 +104,32 @@ const StoreManagement = () => {
         } catch (err) {
             console.error("edit store error:", err);
             toast.error(storeErrorToGreek(err, { op: "editStore" }));
+        }
+    };
+
+    const handleToggleStoreStatus = async (store) => {
+        const prev = store.enable;            // 0 or 1
+        const next = prev === 1 ? 0 : 1;      // flip
+
+        // optimistic update
+        setStores(list => list.map(s => s.id === store.id ? { ...s, enable: next } : s));
+
+        try {
+            const updated = await apiToggleStoreStatus(store.id, next === 1);
+
+            // sync with server truth
+            setStores(list => list.map(s =>
+                s.id === store.id ? { ...s, enable: updated.enable } : s
+            ));
+
+            toast.success(
+                `Η αποθήκη "${store.title}" ${updated.enable === 1 ? "ενεργοποιήθηκε" : "απενεργοποιήθηκε"} επιτυχώς.`
+            );
+        } catch (err) {
+            // rollback
+            setStores(list => list.map(s => s.id === store.id ? { ...s, enable: prev } : s));
+            console.error("store toggle error:", err?.response?.status, err?.response?.data);
+            toast.error(storeErrorToGreek(err));
         }
     };
 
@@ -219,9 +248,31 @@ const StoreManagement = () => {
                     <tr key={store.id}>
                         <td>{store.title}</td>
                         <td>{store.address}</td>
-                        <td>{store.enable === 1 ? "Ενεργή" : "Ανενεργή"}</td>
                         <td>
-                            <div>
+                    <span className={`status-badge ${store.enable === 1 ? 'active' : 'inactive'}`}>
+                        {store.enable === 1 ? "Ενεργή" : "Ανενεργή"}
+                    </span>
+                        </td>
+                        <td>
+                            <div className="action-buttons">
+                                {/* Toggle Status Button */}
+                                <button
+                                    className={`toggle-button ${store.enable === 1 ? 'deactivate' : 'activate'}`}
+                                    onClick={() => handleToggleStoreStatus(store)}
+                                    title={store.enable === 1 ? 'Απενεργοποίηση αποθήκης' : 'Ενεργοποίηση αποθήκης'}
+                                >
+                                    {store.enable === 1 ? (
+                                        <>
+                                            <i className="fa fa-toggle-on"></i> Απενεργοποίηση
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="fa fa-toggle-off"></i> Ενεργοποίηση
+                                        </>
+                                    )}
+                                </button>
+
+                                {/* Edit Button */}
                                 <button
                                     className="edit-button"
                                     onClick={() => {
@@ -233,19 +284,23 @@ const StoreManagement = () => {
                                         });
                                     }}
                                 >
-                                    Επεξεργασία
+                                    <i className="fa fa-edit"></i> Επεξεργασία
                                 </button>
+
+                                {/* View Button */}
                                 <button
                                     className="view-button"
                                     onClick={() => navigate(`/dashboard/manage-stores/${store.id}/materials`)}
                                 >
                                     <i className="fa fa-eye"></i> Προβολή
                                 </button>
+
+                                {/* Delete Button */}
                                 <button
                                     className="delete-button"
                                     onClick={() => openConfirmationDialog(store)}
                                 >
-                                    Διαγραφή
+                                    <i className="fa fa-trash"></i> Διαγραφή
                                 </button>
                             </div>
                         </td>

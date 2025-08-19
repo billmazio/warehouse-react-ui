@@ -377,10 +377,17 @@ export const createMaterial = async (materialData) => {
 
 export const toggleUserStatus = async (userId, enableBool) => {
     const res = await api.patch(`/api/users/${userId}/toggle-status`, {
-        enable: !!enableBool,   // boolean
+        enable: !!enableBool,
     });
-    return res.data;          // updated UserDTO (enable is 0/1)
+    return res.data;
 };
+
+export const toggleStoreStatus = async (storeId, enableBool) => {
+    const res = await api.patch(`/api/stores/${storeId}/toggle-status`, {
+        enable: !!enableBool
+    });
+    return res.data;   
+}
 
 
 

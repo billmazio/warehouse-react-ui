@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import { fetchDashboardData, fetchUserDetails } from "../../services/api";
 import "./Dashboard.css";
@@ -14,43 +14,65 @@ const Dashboard = () => {
     const [userDetails, setUserDetails] = useState(null);
     const [error, setError] = useState("");
     const navigate = useNavigate();
-    const location = useLocation(); // Current route for active class
+    const location = useLocation();
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [dashboardResponse, userResponse] = await Promise.all([
-                    fetchDashboardData(),
-                    fetchUserDetails(),
-                ]);
-                console.log("Dashboard Response:", dashboardResponse);
+    const fetchData = useCallback(async () => {
+        try {
+            const [dashboardResponse, userResponse] = await Promise.all([
+                fetchDashboardData(),
+                fetchUserDetails(),
+            ]);
 
-                setDashboardData({
-                    user: dashboardResponse.user || 0,
-                    materials: dashboardResponse.materials || 0,
-                    sizes: dashboardResponse.sizes || 0,
-                    orders: dashboardResponse.orders || 0,
-                    stores: dashboardResponse.stores || 0,
-                });
+            setDashboardData({
+                user: dashboardResponse.user || 0,
+                materials: dashboardResponse.materials || 0,
+                sizes: dashboardResponse.sizes || 0,
+                orders: dashboardResponse.orders || 0,
+                stores: dashboardResponse.stores || 0,
+            });
 
-                setUserDetails(userResponse);
-            } catch (err) {
-                console.error("Error fetching data:", err);
-                setError("Failed to load data.");
-            }
-        };
-
-        fetchData();
+            setUserDetails(userResponse);
+            setError("");
+        } catch (err) {
+            console.error("Error fetching data:", err);
+            setError("Failed to load data.");
+        }
     }, []);
 
-    const handleNavigation = (path) => {
-        navigate(path); // Navigate to specific paths
-    };
+    // initial load
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
+    // refetch whenever we navigate back to /dashboard
+    useEffect(() => {
+        if (location.pathname === "/dashboard") {
+            fetchData();
+        }
+    }, [location.pathname, fetchData]);
+
+    // listen for "dashboard:refresh" events fired by other pages
+    useEffect(() => {
+        const onRefresh = () => fetchData();
+        window.addEventListener("dashboard:refresh", onRefresh);
+        return () => window.removeEventListener("dashboard:refresh", onRefresh);
+    }, [fetchData]);
+
+    // optional: refetch on tab focus
+    useEffect(() => {
+        const onFocus = () => {
+            if (location.pathname === "/dashboard") fetchData();
+        };
+        window.addEventListener("focus", onFocus);
+        return () => window.removeEventListener("focus", onFocus);
+    }, [location.pathname, fetchData]);
+
+    const handleNavigation = (path) => navigate(path);
     const handleLogout = () => {
         localStorage.removeItem("token");
         window.location.href = "/login";
     };
+
 
     return (
         <div className="dashboard-container">

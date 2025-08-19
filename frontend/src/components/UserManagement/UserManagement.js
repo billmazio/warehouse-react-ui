@@ -255,41 +255,49 @@ const UserManagement = () => {
                     <tr key={user.id}>
                         <td>{user.username}</td>
                         <td>{(user.roles || []).map((r) => r.name).join(", ")}</td>
-                        <td>{user.enable === 1 ? "Ενεργός" : "Ανενεργός"}</td>
-                        <td>{user.store?.title || "N/A"}</td>
-                        <td>
-                            <div className="user-actions">
-                                <div className="checkbox-container">
-                                    <input
-                                        type="checkbox"
-                                        className="enable-toggle"
-                                        id={`enable-${user.id}`}
-                                        checked={user.enable === 1}
-                                        disabled={loggedInUserRole !== "SUPER_ADMIN"}
-                                        onChange={() => handleToggleUserStatus(user)}
-                                        title={
-                                            loggedInUserRole !== "SUPER_ADMIN"
-                                                ? "Μόνο ο Super Admin μπορεί να αλλάξει την κατάσταση"
-                                                : "Ενεργοποίηση/Απενεργοποίηση χρήστη"
-                                        }
-                                    />
-                                    <label
-                                        htmlFor={`enable-${user.id}`}
-                                        className={`status-text ${user.enable === 1 ? "active" : "inactive"}`}
-                                    >
-                                        {user.enable === 1 ? "Ενεργός" : "Ανενεργός"}
-                                    </label>
-                                </div>
 
+                        {/* STATUS like Store */}
+                        <td>
+    <span className={`status-badge ${user.enable === 1 ? "active" : "inactive"}`}>
+      {user.enable === 1 ? "Ενεργός" : "Ανενεργός"}
+    </span>
+                        </td>
+
+                        <td>{user.store?.title || "N/A"}</td>
+
+                        {/* ACTIONS like Store */}
+                        <td>
+                            <div className="action-buttons">
                                 <button
-                                    className="delete-button"
-                                    onClick={() => openConfirmationDialog(user)}
+                                    className={`toggle-button ${user.enable === 1 ? "deactivate" : "activate"}`}
+                                    onClick={() => handleToggleUserStatus(user)}
+                                    disabled={loggedInUserRole !== "SUPER_ADMIN"}
+                                    title={
+                                        loggedInUserRole !== "SUPER_ADMIN"
+                                            ? "Μόνο ο Super Admin μπορεί να αλλάξει την κατάσταση"
+                                            : user.enable === 1
+                                                ? "Απενεργοποίηση χρήστη"
+                                                : "Ενεργοποίηση χρήστη"
+                                    }
                                 >
-                                    Διαγραφή
+                                    {user.enable === 1 ? (
+                                        <>
+                                            <i className="fa fa-toggle-on" /> Απενεργοποίηση
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="fa fa-toggle-off" /> Ενεργοποίηση
+                                        </>
+                                    )}
+                                </button>
+
+                                <button className="delete-button" onClick={() => openConfirmationDialog(user)}>
+                                    <i className="fa fa-trash"></i> Διαγραφή
                                 </button>
                             </div>
                         </td>
                     </tr>
+
                 ))}
                 </tbody>
             </table>

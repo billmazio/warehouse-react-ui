@@ -484,7 +484,6 @@
     }
 }
 
-/* Medium devices (tablets) */
 @media (min-width: 768px) and (max-width: 991px) {
     .user-create-form {
         justify-content: space-between;
@@ -505,7 +504,6 @@
     }
 }
 
-/* Large devices (desktops) */
 @media (min-width: 992px) {
     .user-management-container {
         padding: 30px;
@@ -516,88 +514,70 @@
     }
 }
 
-/* Add these styles to your existing UserManagement.css */
-
-.user-actions {
+.action-buttons {
     display: flex;
+    gap: 4px;
     align-items: center;
-    gap: 15px;
     justify-content: center;
 }
 
-.checkbox-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 120px;
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid transparent;
 }
-
-.enable-toggle {
-    transform: scale(1.2);
-    cursor: pointer;
+.status-badge.active {
+    background: #e8f8ed;
+    color: #1e7e34;
+    border-color: #c7ecd2;
 }
-
-.enable-toggle:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-.status-text {
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin: 0;
-    transition: color 0.3s ease;
-}
-
-.status-text.active {
-    color: #28a745;
-}
-
-.status-text.inactive {
+.status-badge.inactive {
+    background: #f2f2f2;
     color: #6c757d;
+    border-color: #e0e0e0;
 }
 
-
-.user-table th:last-child,
-.user-table td:last-child {
-    min-width: 200px;
-    white-space: nowrap;
+.toggle-button {
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    transition: transform 0.05s ease, opacity 0.2s ease;
 }
-
-.enable-toggle:disabled + .status-text {
-    position: relative;
+.toggle-button i {
+    font-size: 1rem;
 }
-
-.enable-toggle:disabled:hover + .status-text::after {
-    content: "Μόνο ο Super Admin μπορεί να αλλάξει την κατάσταση";
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    white-space: nowrap;
-    z-index: 1000;
-    pointer-events: none;
+.toggle-button.activate {
+    background: #198754;
+    color: #fff;
+}
+.toggle-button.deactivate {
+    background: #dc3545;
+    color: #fff;
+}
+.toggle-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 @media (max-width: 768px) {
-    .user-actions {
+    .action-buttons {
         flex-direction: column;
-        gap: 8px;
-        align-items: flex-start;
+        gap: 4px;
     }
 
-    .checkbox-container {
-        min-width: auto;
-    }
-
-    .user-table th:last-child,
-    .user-table td:last-child {
-        min-width: auto;
+    .toggle-button, .edit-button, .view-button, .delete-button {
+        font-size: 11px;
+        padding: 5px 10px;
     }
 }
+
+
 
