@@ -208,15 +208,15 @@ const OrderManagement = () => {
                 <input
                     type="number"
                     placeholder="Ποσότητα"
-                    value={newOrder.quantity || ""} // show placeholder when 0
+                    min={1}
+                    value={newOrder.quantity ?? ""}
                     onChange={(e) =>
                         setNewOrder({
                             ...newOrder,
-                            quantity: e.target.value ? parseInt(e.target.value, 10) : 0,
+                            quantity: e.target.value === "" ? null : Math.max(1, parseInt(e.target.value, 10)),
                         })
                     }
                 />
-
                 <input
                     type="date"
                     placeholder="Ημερομηνία Παραγγελίας"

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
-import { fetchDashboardData, fetchUserDetails } from "../../services/api";
+import { fetchDashboardData, fetchUserDetails, fetchStores } from "../../services/api";
 import "./Dashboard.css";
 
 const Dashboard = () => {
@@ -23,42 +23,44 @@ const Dashboard = () => {
                 fetchUserDetails(),
             ]);
 
+            const storesData = await fetchStores();
+
+            const activeStores = Array.isArray(storesData)
+                ? storesData.filter(store => store.enable === 1).length
+                : 0;
+
             setDashboardData({
                 user: dashboardResponse.user || 0,
                 materials: dashboardResponse.materials || 0,
                 sizes: dashboardResponse.sizes || 0,
                 orders: dashboardResponse.orders || 0,
-                stores: dashboardResponse.stores || 0,
+                stores: activeStores, // Use active stores count
             });
 
             setUserDetails(userResponse);
             setError("");
         } catch (err) {
             console.error("Error fetching data:", err);
-            setError("Failed to load data.");
+            setError("Failed to load data. Please try again later.");
         }
     }, []);
 
-    // initial load
     useEffect(() => {
         fetchData();
     }, [fetchData]);
 
-    // refetch whenever we navigate back to /dashboard
     useEffect(() => {
         if (location.pathname === "/dashboard") {
             fetchData();
         }
     }, [location.pathname, fetchData]);
 
-    // listen for "dashboard:refresh" events fired by other pages
     useEffect(() => {
         const onRefresh = () => fetchData();
         window.addEventListener("dashboard:refresh", onRefresh);
         return () => window.removeEventListener("dashboard:refresh", onRefresh);
     }, [fetchData]);
 
-    // optional: refetch on tab focus
     useEffect(() => {
         const onFocus = () => {
             if (location.pathname === "/dashboard") fetchData();
@@ -68,15 +70,14 @@ const Dashboard = () => {
     }, [location.pathname, fetchData]);
 
     const handleNavigation = (path) => navigate(path);
+
     const handleLogout = () => {
         localStorage.removeItem("token");
         window.location.href = "/login";
     };
 
-
     return (
         <div className="dashboard-container">
-            {/* Sidebar */}
             <aside className="sidebar">
                 <div className="sidebar-header">
                     <div className="user-avatar">
@@ -94,31 +95,41 @@ const Dashboard = () => {
                         <i className="fa fa-palette"></i> Αρχική
                     </li>
                     <li
-                        className={location.pathname === "/dashboard/manage-users" ? "active" : ""}
+                        className={
+                            location.pathname === "/dashboard/manage-users" ? "active" : ""
+                        }
                         onClick={() => handleNavigation("/dashboard/manage-users")}
                     >
                         <i className="fa fa-users"></i> Διαχείριση Χρηστών
                     </li>
                     <li
-                        className={location.pathname === "/dashboard/manage-stores" ? "active" : ""}
+                        className={
+                            location.pathname === "/dashboard/manage-stores" ? "active" : ""
+                        }
                         onClick={() => handleNavigation("/dashboard/manage-stores")}
                     >
                         <i className="fa fa-warehouse"></i> Αποθήκες
                     </li>
                     <li
-                        className={location.pathname === "/dashboard/manage-materials" ? "active" : ""}
+                        className={
+                            location.pathname === "/dashboard/manage-materials" ? "active" : ""
+                        }
                         onClick={() => handleNavigation("/dashboard/manage-materials")}
                     >
                         <i className="fa fa-tshirt"></i> Ενδύματα
                     </li>
                     <li
-                        className={location.pathname === "/dashboard/manage-orders" ? "active" : ""}
+                        className={
+                            location.pathname === "/dashboard/manage-orders" ? "active" : ""
+                        }
                         onClick={() => handleNavigation("/dashboard/manage-orders")}
                     >
                         <i className="fa fa-shopping-cart"></i> Παραγγελίες
                     </li>
                     <li
-                        className={location.pathname === "/dashboard/change-password" ? "active" : ""}
+                        className={
+                            location.pathname === "/dashboard/change-password" ? "active" : ""
+                        }
                         onClick={() => handleNavigation("/dashboard/change-password")}
                     >
                         <i className="fa fa-lock"></i> Αλλαγή Κωδικού
@@ -126,7 +137,6 @@ const Dashboard = () => {
                 </ul>
             </aside>
 
-            {/* Main Content */}
             <main className="main-content">
                 <header className="header">
                     <button className="logout-btn" onClick={handleLogout}>
@@ -134,28 +144,38 @@ const Dashboard = () => {
                     </button>
                 </header>
 
-                {/* Render Error if Any */}
                 {error && <p className="error-message">{error}</p>}
 
-                {/* Conditionally render dashboard cards only on the main dashboard route */}
                 {location.pathname === "/dashboard" && (
                     <section className="dashboard-cards">
-                        <div className="card" onClick={() => handleNavigation("/dashboard/manage-users")}>
+                        <div
+                            className="card"
+                            onClick={() => handleNavigation("/dashboard/manage-users")}
+                        >
                             <i className="fa fa-users card-icon"></i>
                             <h3>Διαχείριση Χρηστών</h3>
                             <p>Ενεργοί Χρήστες: {dashboardData.user}</p>
                         </div>
-                        <div className="card" onClick={() => handleNavigation("/dashboard/manage-materials")}>
+                        <div
+                            className="card"
+                            onClick={() => handleNavigation("/dashboard/manage-materials")}
+                        >
                             <i className="fa fa-tshirt card-icon"></i>
                             <h3>Διαχείριση Ενδυμάτων</h3>
                             <p>Καταχωρημένα: {dashboardData.materials}</p>
                         </div>
-                        <div className="card" onClick={() => handleNavigation("/dashboard/manage-orders")}>
+                        <div
+                            className="card"
+                            onClick={() => handleNavigation("/dashboard/manage-orders")}
+                        >
                             <i className="fa fa-shopping-cart card-icon"></i>
                             <h3>Παραγγελίες</h3>
                             <p>Συνολικές Παραγγελίες: {dashboardData.orders}</p>
                         </div>
-                        <div className="card" onClick={() => handleNavigation("/dashboard/manage-stores")}>
+                        <div
+                            className="card"
+                            onClick={() => handleNavigation("/dashboard/manage-stores")}
+                        >
                             <i className="fa fa-warehouse card-icon"></i>
                             <h3>Διαχείριση Αποθηκών</h3>
                             <p>Ενεργές Αποθήκες: {dashboardData.stores}</p>
@@ -163,7 +183,6 @@ const Dashboard = () => {
                     </section>
                 )}
 
-                {/* Nested Content */}
                 <div className="content">
                     <Outlet />
                 </div>
