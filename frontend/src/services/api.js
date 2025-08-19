@@ -372,6 +372,14 @@ export const createMaterial = async (materialData) => {
         console.error('Error creating material:', error);
         throw error;
     }
+
+};
+
+export const toggleUserStatus = async (userId, enableBool) => {
+    const res = await api.patch(`/api/users/${userId}/toggle-status`, {
+        enable: !!enableBool,   // boolean
+    });
+    return res.data;          // updated UserDTO (enable is 0/1)
 };
 
 

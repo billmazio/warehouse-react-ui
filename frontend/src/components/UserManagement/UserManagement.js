@@ -1,10 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {fetchUsers, createUser, deleteUser, fetchStores, fetchUserDetails,
+import {
+    fetchUsers,
+    createUser,
+    deleteUser,
+    fetchStores,
+    fetchUserDetails,
+    toggleUserStatus as apiToggleUserStatus,
 } from "../../services/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./UserManagement.css";
+
+const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/;
 
 const UserManagement = () => {
     const navigate = useNavigate();
@@ -17,7 +25,7 @@ const UserManagement = () => {
     const [newUser, setNewUser] = useState({
         username: "",
         password: "",
-        role: "",
+        role: "LOCAL_ADMIN", // default so it's never empty
         enable: 1,
         storeId: "",
     });
@@ -26,24 +34,18 @@ const UserManagement = () => {
         const loadData = async () => {
             try {
                 const [userData, userDetails, storeData] = await Promise.all([
-                    fetchUsers(), // Fetch all users
-                    fetchUserDetails(), // Fetch logged-in user details
-                    fetchStores(), // Fetch all stores
+                    fetchUsers(),
+                    fetchUserDetails(),
+                    fetchStores(),
                 ]);
 
-                // Set users and stores
                 setUsers(userData);
                 setStores(storeData);
 
-                // Determine and set the role of the logged-in user
-                const roles = userDetails.roles.map((role) => role.name);
-                if (roles.includes("SUPER_ADMIN")) {
-                    setLoggedInUserRole("SUPER_ADMIN");
-                } else if (roles.includes("LOCAL_ADMIN")) {
-                    setLoggedInUserRole("LOCAL_ADMIN");
-                } else {
-                    setLoggedInUserRole(""); // Default or fallback role
-                }
+                const roles = (userDetails.roles || []).map((r) => r.name);
+                if (roles.includes("SUPER_ADMIN")) setLoggedInUserRole("SUPER_ADMIN");
+                else if (roles.includes("LOCAL_ADMIN")) setLoggedInUserRole("LOCAL_ADMIN");
+                else setLoggedInUserRole("");
             } catch (err) {
                 setError("Failed to fetch data.");
                 console.error("Error:", err);
@@ -52,7 +54,6 @@ const UserManagement = () => {
 
         loadData();
     }, []);
-
 
     const openConfirmationDialog = (user) => {
         setUserToDelete(user);
@@ -67,17 +68,17 @@ const UserManagement = () => {
     const confirmDelete = async () => {
         try {
             await deleteUser(userToDelete.id);
-            setUsers(users.filter((user) => user.id !== userToDelete.id));
+            setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
             toast.success(`Ο χρήστης "${userToDelete.username}" διαγράφηκε επιτυχώς.`);
         } catch (err) {
             if (err.response) {
-                const errorMessage = err.response.data.message;
-
-                if (err.response.status === 403) {
-                    toast.error(errorMessage); // Handles both SUPER_ADMIN and unauthorized deletion
-                } else if (err.response.status === 409) {
-                    toast.error("Υπάρχουν συνδεδεμένα δεδομένα."); // Handles associated data issue
-                } else if (err.response.status === 404) {
+                const status = err.response.status;
+                const errorMessage = err.response.data?.message;
+                if (status === 403) {
+                    toast.error(errorMessage || "Μη εξουσιοδοτημένη ενέργεια.");
+                } else if (status === 409) {
+                    toast.error("Υπάρχουν συνδεδεμένα δεδομένα.");
+                } else if (status === 404) {
                     toast.error("Ο χρήστης δεν βρέθηκε.");
                 } else {
                     toast.error("Παρουσιάστηκε σφάλμα κατά τη διαγραφή του χρήστη.");
@@ -91,27 +92,86 @@ const UserManagement = () => {
         }
     };
 
+    const handleToggleUserStatus = async (user) => {
+        const prev = user.enable;            // 0 or 1
+        const next = prev === 1 ? 0 : 1;     // flip
+
+        setUsers(list => list.map(u => u.id === user.id ? { ...u, enable: next } : u));
+
+        try {
+            const updated = await apiToggleUserStatus(user.id, next === 1);
+
+            // sync with server truth
+            setUsers(list => list.map(u =>
+                u.id === user.id ? { ...u, enable: updated.enable } : u
+            ));
+
+            toast.success(
+                `Ο χρήστης "${user.username}" ${updated.enable === 1 ? "ενεργοποιήθηκε" : "απενεργοποιήθηκε"} επιτυχώς.`
+            );
+        } catch (err) {
+            // rollback
+            setUsers(list => list.map(u => u.id === user.id ? { ...u, enable: prev } : u));
+            console.error("toggle error:", err?.response?.status, err?.response?.data);
+            toast.error(err?.response?.data?.message || "Παρουσιάστηκε σφάλμα κατά την ενημέρωση του χρήστη.");
+        }
+    };
+
     const handleCreate = async () => {
         if (!newUser.username.trim() || !newUser.password.trim() || !newUser.storeId) {
-            toast.warning("Το Όνομα Χρήστη, ο Κωδικός Πρόσβασης και η επιλογή Αποθήκης είναι απαραίτητα.");
+            toast.warning(
+                "Το Όνομα Χρήστη, ο Κωδικός Πρόσβασης και η επιλογή Αποθήκης είναι απαραίτητα."
+            );
+            return;
+        }
+
+        if (newUser.password.length < 6) {
+            toast.warning("Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες.");
+            return;
+        }
+
+        if (!PASSWORD_RULE.test(newUser.password)) {
+            toast.warning(
+                "Ο κωδικός πρέπει να έχει τουλάχιστον ένα κεφαλαίο, ένα μικρό, ένα ψηφίο και ένα ειδικό σύμβολο."
+            );
             return;
         }
 
         try {
-            const createdUser = await createUser(newUser);
-            setUsers([...users, createdUser]);
-            setNewUser({ username: "", password: "", role: "", enable: 1, storeId: "" });
+            const createdUser = await createUser({
+                username: newUser.username,
+                password: newUser.password,
+                role: (newUser.role || "LOCAL_ADMIN").toUpperCase(),
+                enable: newUser.enable,
+                storeId: newUser.storeId,
+            });
+
+            setUsers((prev) => [...prev, createdUser]);
+
+            setNewUser({
+                username: "",
+                password: "",
+                role: "LOCAL_ADMIN",
+                enable: 1,
+                storeId: "",
+            });
+
             toast.success("Ο χρήστης δημιουργήθηκε επιτυχώς.");
         } catch (err) {
             if (err.response) {
                 if (err.response.status === 403) {
-                    // Show correct message for unauthorized users
                     toast.error("Δεν έχετε δικαίωμα να δημιουργήσετε χρήστες.");
                 } else if (err.response.status === 409) {
-                    // Handle duplicate username error
-                    toast.error("Το όνομα χρήστη υπάρχει ήδη. Παρακαλώ επιλέξτε διαφορετικό όνομα χρήστη.");
+                    toast.error(
+                        "Το όνομα χρήστη υπάρχει ήδη. Παρακαλώ επιλέξτε διαφορετικό όνομα χρήστη."
+                    );
+                } else if (err.response.status === 400) {
+                    const msg =
+                        err.response.data?.errors?.password ||
+                        err.response.data?.message ||
+                        "Μη έγκυρα δεδομένα.";
+                    toast.error(msg);
                 } else {
-                    // General server error
                     toast.error("Παρουσιάστηκε σφάλμα κατά τη δημιουργία του χρήστη.");
                 }
             } else {
@@ -123,7 +183,7 @@ const UserManagement = () => {
 
     return (
         <div className="user-management-container">
-            <ToastContainer/>
+            <ToastContainer />
             <button onClick={() => navigate("/dashboard")} className="back-button">
                 Πίσω στην Κεντρική Διαχείριση
             </button>
@@ -131,43 +191,53 @@ const UserManagement = () => {
             <h2>Διαχείριση Χρηστών</h2>
             {error && <p className="error-message">{error}</p>}
 
-            {loggedInUserRole === "SUPER_ADMIN" &&
+            {loggedInUserRole === "SUPER_ADMIN" && (
                 <div className="user-create-form">
                     <input
                         type="text"
                         placeholder="Εισάγετε όνομα χρήστη"
                         value={newUser.username}
-                        onChange={(e) => setNewUser({...newUser, username: e.target.value})}
+                        onChange={(e) =>
+                            setNewUser({ ...newUser, username: e.target.value })
+                        }
+                        required
                     />
+
                     <input
                         type="password"
                         placeholder="Εισάγετε κωδικό"
                         value={newUser.password}
-                        onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                        minLength={6}
+                        onChange={(e) =>
+                            setNewUser({ ...newUser, password: e.target.value })
+                        }
+                        required
                     />
+
                     <select
                         value={newUser.role}
-                        onChange={(e) => setNewUser({...newUser, role: e.target.value})}
+                        onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                     >
-                        <option value="" disabled>
-                            Επιλογή Χρήστη
-                        </option>
+                        {/* keep a visible label, but default role is LOCAL_ADMIN so no empty value is submitted */}
                         <option value="SUPER_ADMIN">Super Admin</option>
                         <option value="LOCAL_ADMIN">Local Admin</option>
                     </select>
+
                     <label>
                         Enable:
                         <input
                             type="checkbox"
                             checked={newUser.enable === 1}
                             onChange={(e) =>
-                                setNewUser({...newUser, enable: e.target.checked ? 1 : 0})
+                                setNewUser({ ...newUser, enable: e.target.checked ? 1 : 0 })
                             }
                         />
                     </label>
+
                     <select
                         value={newUser.storeId}
-                        onChange={(e) => setNewUser({...newUser, storeId: e.target.value})}
+                        onChange={(e) => setNewUser({ ...newUser, storeId: e.target.value })}
+                        required
                     >
                         <option value="" disabled>
                             Επιλογή Αποθήκης
@@ -182,6 +252,7 @@ const UserManagement = () => {
                     <button className="create-button" onClick={handleCreate}>
                         Δημιουργία χρήστη
                     </button>
+
                     <div>
                         <button
                             className="cancel-button"
@@ -199,7 +270,7 @@ const UserManagement = () => {
                         </button>
                     </div>
                 </div>
-            }
+            )}
 
             <table className="user-table">
                 <thead>
@@ -215,23 +286,44 @@ const UserManagement = () => {
                 {users.map((user) => (
                     <tr key={user.id}>
                         <td>{user.username}</td>
-                        <td>
-                            {(user.roles || []).map((role) => role.name).join(", ")} {/* Display roles */}
-                        </td>
+                        <td>{(user.roles || []).map((r) => r.name).join(", ")}</td>
                         <td>{user.enable === 1 ? "Active" : "Inactive"}</td>
-                        {/* Convert Integer to readable status */}
                         <td>{user.store?.title || "N/A"}</td>
                         <td>
+                            <div className="user-actions">
+                                <div className="checkbox-container">
+                                    <input
+                                        type="checkbox"
+                                        className="enable-toggle"
+                                        id={`enable-${user.id}`}
+                                        checked={user.enable === 1}
+                                        disabled={loggedInUserRole !== "SUPER_ADMIN"}
+                                        onChange={() => handleToggleUserStatus(user)}
+                                        title={
+                                            loggedInUserRole !== "SUPER_ADMIN"
+                                                ? "Μόνο ο Super Admin μπορεί να αλλάξει την κατάσταση"
+                                                : "Ενεργοποίηση/Απενεργοποίηση χρήστη"
+                                        }
 
-                                    <button
-                                        className="delete-button"
-                                        onClick={() => openConfirmationDialog(user)}
+                                        />
+                                    <label
+                                        htmlFor={`enable-${user.id}`}
+                                        className={`status-text ${
+                                            user.enable === 1 ? "active" : "inactive"
+                                        }`}
                                     >
-                                        Διαγραφή
-                                    </button>
+                                        {user.enable === 1 ? "Ενεργός" : "Ανενεργός"}
+                                    </label>
+                                </div>
 
+                                <button
+                                    className="delete-button"
+                                    onClick={() => openConfirmationDialog(user)}
+                                >
+                                    Διαγραφή
+                                </button>
+                            </div>
                         </td>
-
                     </tr>
                 ))}
                 </tbody>
@@ -255,8 +347,8 @@ const UserManagement = () => {
                     </div>
                 </div>
             )}
-
         </div>
     );
 };
+
 export default UserManagement;
