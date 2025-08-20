@@ -47,12 +47,12 @@ const UserStatus = {
 const statusStyles = `
 .status-active {
     background-color: #4caf50 !important;
-    color: white !important;
+    color: black !important;
     font-weight: bold !important;
 }
 .status-inactive {
     background-color: #f44336 !important;
-    color: white !important;
+    color: black !important;
     font-weight: bold !important;
 }
 `;

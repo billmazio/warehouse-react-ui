@@ -8,7 +8,6 @@ import {
     editStore,
     distributeMaterial,
     fetchMaterials,
-    toggleStoreStatus as apiToggleStoreStatus,
 } from "../../services/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -40,16 +39,15 @@ const StoreStatus = {
     }
 };
 
-// Enhanced status styles - full cell background like OrderManagement
 const statusStyles = `
 .status-active {
     background-color: #4caf50 !important; 
-    color: white !important;
+    color: black !important;
     font-weight: bold !important;
 }
 .status-inactive {
     background-color: #f44336 !important;
-    color: white !important;
+    color: black !important;
     font-weight: bold !important;
 }
 `;
@@ -170,45 +168,6 @@ const StoreManagement = () => {
         } catch (err) {
             console.error("edit store error:", err);
             toast.error(storeErrorToGreek(err, { op: "editStore" }));
-        }
-    };
-
-    const handleToggleStoreStatus = async (store) => {
-        const currentStatus = store.status;
-        const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-
-        const isActive = newStatus === "ACTIVE";
-
-        console.log(`Current status: ${currentStatus}, New status: ${newStatus}`);
-
-        setStores(list => list.map(s =>
-            s.id === store.id ? { ...s, status: newStatus } : s
-        ));
-
-        try {
-            console.log(`Toggling store ${store.id} status to ${newStatus}`);
-
-            const response = await apiToggleStoreStatus(store.id, isActive);
-            console.log("Toggle response:", response);
-
-            if (response && response.status) {
-                setStores(list => list.map(s =>
-                    s.id === store.id ? { ...s, status: response.status } : s
-                ));
-            }
-
-            toast.success(
-                `Η αποθήκη "${store.title}" ${isActive ? "ενεργοποιήθηκε" : "απενεργοποιήθηκε"} επιτυχώς.`
-            );
-        } catch (err) {
-            setStores(list => list.map(s =>
-                s.id === store.id ? { ...s, status: currentStatus } : s
-            ));
-            console.error("Store toggle error:", err);
-            if (err.response) {
-                console.error("Error response:", err.response.data);
-            }
-            toast.error(storeErrorToGreek(err));
         }
     };
 
