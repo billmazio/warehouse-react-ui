@@ -16,6 +16,31 @@ import "react-toastify/dist/ReactToastify.css";
 import "./OrderManagement.css";
 import { orderErrorToGreek } from "../../utils/orderErrors";
 
+// For debugging API calls
+const logOrderData = (order, operation) => {
+    console.log(`${operation} Order Data:`, JSON.stringify(order, null, 2));
+};
+
+// CSS for status colors
+const statusStyles = `
+.status-pending {
+    color: #ff9800;
+    font-weight: bold;
+}
+.status-processing {
+    color: #2196f3;
+    font-weight: bold;
+}
+.status-completed {
+    color: #4caf50;
+    font-weight: bold;
+}
+.status-cancelled {
+    color: #f44336;
+    font-weight: bold;
+}
+`;
+
 const OrderManagement = () => {
     const navigate = useNavigate();
     const [stores, setStores] = useState([]);
@@ -26,13 +51,84 @@ const OrderManagement = () => {
     const [newOrder, setNewOrder] = useState({
         quantity: 0,
         dateOfOrder: "",
-        status: 1,
-        materialText: "",
+        orderStatus: "PENDING",
+        user: { username: "" },
+        store: { title: "" },
+        material: { text: "" },
+        size: { name: "" },
         materialStoreId: "",
-        sizeName: "",
-        storeTitle: "",
-        userName: "",
     });
+
+    // Define OrderStatus enum to match backend
+    const OrderStatus = {
+        PENDING: "PENDING",
+        PROCESSING: "PROCESSING",
+        COMPLETED: "COMPLETED",
+        CANCELLED: "CANCELLED",
+
+        // Convert from display text to enum value
+        fromGreekText: (text) => {
+            switch (text) {
+                case "ΕΚΚΡΕΜΕΙ": return "PENDING";
+                case "ΣΕ ΕΠΕΞΕΡΓΑΣΙΑ": return "PROCESSING";
+                case "ΟΛΟΚΛΗΡΩΜΕΝΗ": return "COMPLETED";
+                case "ΑΚΥΡΩΜΕΝΗ": return "CANCELLED";
+                default: return "PENDING";
+            }
+        },
+
+        // Convert from enum value to display text (matching backend toString())
+        toGreekText: (status) => {
+            switch (status) {
+                case "PENDING": return "ΕΚΚΡΕΜΕΙ";
+                case "PROCESSING": return "ΣΕ ΕΠΕΞΕΡΓΑΣΙΑ";
+                case "COMPLETED": return "ΟΛΟΚΛΗΡΩΜΕΝΗ";
+                case "CANCELLED": return "ΑΚΥΡΩΜΕΝΗ";
+                default: return "Άγνωστη Κατάσταση";
+            }
+        },
+
+        // Convert from previous integer status to enum value
+        fromLegacyStatus: (statusNum) => {
+            switch (Number(statusNum)) {
+                case 1: return "PENDING";
+                case 2: return "COMPLETED";
+                case 3: return "CANCELLED";
+                default: return "PENDING";
+            }
+        },
+
+        // Check if status is active (pending or processing)
+        isActive: (status) => {
+            return status === "PENDING" || status === "PROCESSING";
+        },
+
+        // Check if status is completed
+        isCompleted: (status) => {
+            return status === "COMPLETED";
+        },
+
+        // Check if status is cancelled
+        isCancelled: (status) => {
+            return status === "CANCELLED";
+        }
+    };
+
+    // Get CSS class name for status styling
+    const getStatusClassName = (status) => {
+        if (typeof status === 'number') {
+            // Handle legacy status
+            status = OrderStatus.fromLegacyStatus(status);
+        }
+
+        switch (status) {
+            case "PENDING": return "status-pending";
+            case "PROCESSING": return "status-processing";
+            case "COMPLETED": return "status-completed";
+            case "CANCELLED": return "status-cancelled";
+            default: return "";
+        }
+    };
 
     const [editingOrder, setEditingOrder] = useState(null);
     const [currentPage, setCurrentPage] = useState(0);
@@ -42,6 +138,7 @@ const OrderManagement = () => {
     const [orderToDelete, setOrderToDelete] = useState(null);
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
 
+    // Load data for the component
     const loadData = async (page = 0, size = 5) => {
         try {
             const [storeData, userData, materialData, sizeData, loggedInUser] =
@@ -52,14 +149,23 @@ const OrderManagement = () => {
             setMaterials(materialData);
             setSizes(sizeData);
 
+            console.log("Fetched data:", {
+                stores: storeData,
+                users: userData,
+                materials: materialData,
+                sizes: sizeData
+            });
+
             const userRoles = (loggedInUser.roles || []).map((role) => role.name);
             if (userRoles.includes("SUPER_ADMIN")) {
                 const orderData = await fetchOrders(page, size, null, null, "", "");
+                console.log("Fetched orders:", orderData);
                 setOrders(orderData.content || []);
                 setTotalPages(orderData.totalPages || 0);
             } else if (userRoles.includes("LOCAL_ADMIN")) {
                 const userStoreId = loggedInUser.store.id;
                 const orderData = await fetchOrders(page, size, userStoreId, null, "", "");
+                console.log("Fetched orders:", orderData);
                 setOrders(orderData.content || []);
                 setTotalPages(orderData.totalPages || 0);
             }
@@ -74,72 +180,118 @@ const OrderManagement = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPage, pageSize]);
 
-    const requiredFields = ["quantity", "dateOfOrder", "userName", "storeTitle", "materialText", "sizeName"];
+    const validateOrder = () => {
+        if (!newOrder.quantity || newOrder.quantity <= 0) {
+            toast.warning("Παρακαλώ εισάγετε έγκυρη ποσότητα");
+            return false;
+        }
+        if (!newOrder.dateOfOrder) {
+            toast.warning("Παρακαλώ επιλέξτε ημερομηνία παραγγελίας");
+            return false;
+        }
+        if (!newOrder.user.username) {
+            toast.warning("Παρακαλώ επιλέξτε χρήστη");
+            return false;
+        }
+        if (!newOrder.store.title) {
+            toast.warning("Παρακαλώ επιλέξτε αποθήκη");
+            return false;
+        }
+        if (!newOrder.material.text) {
+            toast.warning("Παρακαλώ επιλέξτε υλικό");
+            return false;
+        }
+        if (!newOrder.size.name) {
+            toast.warning("Παρακαλώ επιλέξτε μέγεθος");
+            return false;
+        }
+        return true;
+    };
 
     const handleCreate = async () => {
-        const missing = requiredFields.filter((f) => !newOrder[f]);
-        if (missing.length > 0) {
-            const t = {
-                quantity: "Ποσότητα",
-                dateOfOrder: "Ημερομηνία Παραγγελίας",
-                userName: "Χρήστης",
-                storeTitle: "Αποθήκη",
-                materialText: "Υλικό",
-                sizeName: "Μέγεθος",
-            };
-            toast.warning(`Λείπουν απαιτούμενα πεδία: ${missing.map((m) => t[m]).join(", ")}`);
-            return;
-        }
+        if (!validateOrder()) return;
+
+        // Prepare the order data for API
+        const orderData = {
+            quantity: newOrder.quantity,
+            dateOfOrder: newOrder.dateOfOrder,
+            orderStatus: newOrder.orderStatus,
+            user: { username: newOrder.user.username },
+            store: { title: newOrder.store.title },
+            material: { text: newOrder.material.text },
+            size: { name: newOrder.size.name },
+            materialStoreId: newOrder.materialStoreId
+        };
+
+        // Log the data for debugging
+        logOrderData(orderData, "Create");
 
         try {
-            const createdOrder = await createOrder(newOrder);
+            const createdOrder = await createOrder(orderData);
             setOrders((prev) => [...prev, createdOrder]);
-            setNewOrder({
-                quantity: 0,
-                dateOfOrder: "",
-                status: 1,
-                materialText: "",
-                materialStoreId: "",
-                sizeName: "",
-                storeTitle: "",
-                userName: "",
-            });
+            resetOrderForm();
             toast.success("Η παραγγελία δημιουργήθηκε με επιτυχία.");
+            // Refresh the orders list to get the latest data
+            loadData(currentPage, pageSize);
         } catch (err) {
+            console.error("API Error:", err);
             const ctx = {
                 op: "createOrder",
-                materialText: newOrder.materialText,
-                sizeName: newOrder.sizeName,
-                storeTitle: newOrder.storeTitle,
+                materialText: newOrder.material.text,
+                sizeName: newOrder.size.name,
+                storeTitle: newOrder.store.title,
             };
             toast.error(orderErrorToGreek(err, ctx));
         }
     };
 
+    const resetOrderForm = () => {
+        setNewOrder({
+            quantity: 0,
+            dateOfOrder: "",
+            orderStatus: "PENDING",
+            user: { username: "" },
+            store: { title: "" },
+            material: { text: "" },
+            size: { name: "" },
+            materialStoreId: "",
+        });
+        setEditingOrder(null);
+    };
+
     const handleEdit = async () => {
         if (!editingOrder) return;
+        if (!validateOrder()) return;
+
+        // Prepare the order data for API
+        const orderData = {
+            quantity: newOrder.quantity,
+            dateOfOrder: newOrder.dateOfOrder,
+            orderStatus: newOrder.orderStatus,
+            user: { username: newOrder.user.username },
+            store: { title: newOrder.store.title },
+            material: { text: newOrder.material.text },
+            size: { name: newOrder.size.name },
+            materialStoreId: newOrder.materialStoreId
+        };
+
+        // Log the data for debugging
+        logOrderData(orderData, "Edit");
 
         try {
-            const updatedOrder = await editOrder(editingOrder.id, newOrder);
+            const updatedOrder = await editOrder(editingOrder.id, orderData);
             setOrders((prev) => prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o)));
             toast.success("Η παραγγελία ενημερώθηκε με επιτυχία.");
-            setEditingOrder(null);
-            setNewOrder({
-                quantity: 0,
-                dateOfOrder: "",
-                status: 1,
-                materialText: "",
-                materialStoreId: "",
-                sizeName: "",
-                storeTitle: "",
-                userName: "",
-            });
+            resetOrderForm();
+            // Refresh the orders list to get the latest data
+            loadData(currentPage, pageSize);
         } catch (err) {
+            console.error("API Edit Error:", err);
             const ctx = {
                 op: "editOrder",
-                materialText: newOrder.materialText,
-                sizeName: newOrder.sizeName,
-                storeTitle: newOrder.storeTitle,
+                materialText: newOrder.material.text,
+                sizeName: newOrder.size.name,
+                storeTitle: newOrder.store.title,
             };
             toast.error(orderErrorToGreek(err, ctx));
         }
@@ -148,16 +300,34 @@ const OrderManagement = () => {
     const handleEditButtonClick = (orderId) => {
         const orderToEdit = orders.find((order) => order.id === orderId);
         if (orderToEdit) {
+            console.log("Editing order:", orderToEdit);
             setEditingOrder(orderToEdit);
+
+            // Handle potential legacy integer status from existing orders
+            let orderStatus = orderToEdit.orderStatus;
+            if (typeof orderToEdit.status === 'number') {
+                // Convert from old integer status to new enum status
+                orderStatus = OrderStatus.fromLegacyStatus(orderToEdit.status);
+            }
+
+            // Handle both old and new data structures
             setNewOrder({
                 quantity: orderToEdit.quantity,
                 dateOfOrder: orderToEdit.dateOfOrder,
-                status: orderToEdit.status,
-                materialText: orderToEdit.materialText,
+                orderStatus: orderStatus || "PENDING",
+                user: {
+                    username: orderToEdit.user?.username || orderToEdit.userName
+                },
+                store: {
+                    title: orderToEdit.store?.title || orderToEdit.storeTitle
+                },
+                material: {
+                    text: orderToEdit.material?.text || orderToEdit.materialText
+                },
+                size: {
+                    name: orderToEdit.size?.name || orderToEdit.sizeName
+                },
                 materialStoreId: orderToEdit.materialStoreId,
-                sizeName: orderToEdit.sizeName,
-                storeTitle: orderToEdit.storeTitle,
-                userName: orderToEdit.userName,
             });
         }
     };
@@ -189,7 +359,7 @@ const OrderManagement = () => {
     };
 
     // Derived lists
-    const filteredMaterials = materials.filter((m) => m.storeTitle === newOrder.storeTitle);
+    const filteredMaterials = materials.filter((m) => m.storeTitle === newOrder.store.title);
     const filteredSizes = sizes.filter((s) => filteredMaterials.some((m) => m.sizeId === s.id));
     const uniqueMaterials = filteredMaterials.reduce((acc, m) => {
         if (!acc.some((x) => x.text === m.text)) acc.push(m);
@@ -198,22 +368,23 @@ const OrderManagement = () => {
 
     return (
         <div className="order-management-container">
+            <style>{statusStyles}</style>
             <ToastContainer />
             <button onClick={() => navigate("/dashboard")} className="back-button">
                 Πίσω στην Κεντρική Διαχείριση
             </button>
 
-            <h2>Δημιουργία Παραγγελίας</h2>
+            <h2>{editingOrder ? "Επεξεργασία" : "Δημιουργία"} Παραγγελίας</h2>
             <div className="order-create-form">
                 <input
                     type="number"
                     placeholder="Ποσότητα"
                     min={1}
-                    value={newOrder.quantity ?? ""}
+                    value={newOrder.quantity || ""}
                     onChange={(e) =>
                         setNewOrder({
                             ...newOrder,
-                            quantity: e.target.value === "" ? null : Math.max(1, parseInt(e.target.value, 10)),
+                            quantity: e.target.value === "" ? 0 : Math.max(1, parseInt(e.target.value, 10)),
                         })
                     }
                 />
@@ -225,8 +396,13 @@ const OrderManagement = () => {
                 />
 
                 <select
-                    value={newOrder.storeTitle}
-                    onChange={(e) => setNewOrder({ ...newOrder, storeTitle: e.target.value })}
+                    value={newOrder.store.title}
+                    onChange={(e) => setNewOrder({
+                        ...newOrder,
+                        store: { title: e.target.value },
+                        material: { text: "" }, // Clear material when store changes
+                        size: { name: "" } // Clear size when store changes
+                    })}
                 >
                     <option value="" disabled>
                         Επιλογή Αποθήκης
@@ -239,15 +415,17 @@ const OrderManagement = () => {
                 </select>
 
                 <select
-                    value={newOrder.materialText}
+                    value={newOrder.material.text}
                     onChange={(e) => {
                         const selectedMaterial = uniqueMaterials.find((m) => m.text === e.target.value);
                         setNewOrder({
                             ...newOrder,
-                            materialText: e.target.value,
+                            material: { text: e.target.value },
                             materialStoreId: selectedMaterial ? selectedMaterial.id : "",
+                            size: { name: "" } // Clear size when material changes
                         });
                     }}
+                    disabled={!newOrder.store.title}
                 >
                     <option value="" disabled>
                         Επιλογή Υλικού
@@ -260,8 +438,12 @@ const OrderManagement = () => {
                 </select>
 
                 <select
-                    value={newOrder.sizeName}
-                    onChange={(e) => setNewOrder({ ...newOrder, sizeName: e.target.value })}
+                    value={newOrder.size.name}
+                    onChange={(e) => setNewOrder({
+                        ...newOrder,
+                        size: { name: e.target.value }
+                    })}
+                    disabled={!newOrder.material.text}
                 >
                     <option value="" disabled>
                         Επιλογή Μεγέθους
@@ -274,8 +456,11 @@ const OrderManagement = () => {
                 </select>
 
                 <select
-                    value={newOrder.userName}
-                    onChange={(e) => setNewOrder({ ...newOrder, userName: e.target.value })}
+                    value={newOrder.user.username}
+                    onChange={(e) => setNewOrder({
+                        ...newOrder,
+                        user: { username: e.target.value }
+                    })}
                 >
                     <option value="" disabled>
                         Επιλογή Χρήστη
@@ -288,39 +473,26 @@ const OrderManagement = () => {
                 </select>
 
                 <select
-                    value={newOrder.status}
-                    onChange={(e) => setNewOrder({ ...newOrder, status: Number(e.target.value) })}
+                    value={newOrder.orderStatus}
+                    onChange={(e) => setNewOrder({ ...newOrder, orderStatus: e.target.value })}
                 >
-                    <option value={1}>Σε Εκκρεμότητα</option>
-                    <option value={2}>Ολοκληρωμένη</option>
-                    <option value={3}>Ακυρωμένη</option>
+                    <option value="PENDING">ΕΚΚΡΕΜΕΙ</option>
+                    <option value="PROCESSING">ΣΕ ΕΠΕΞΕΡΓΑΣΙΑ</option>
+                    <option value="COMPLETED">ΟΛΟΚΛΗΡΩΜΕΝΗ</option>
+                    <option value="CANCELLED">ΑΚΥΡΩΜΕΝΗ</option>
                 </select>
 
-                <button className="create-button" onClick={handleCreate} disabled={editingOrder !== null}>
-                    Δημιουργία Παραγγελίας
-                </button>
-
-                {editingOrder && (
+                {!editingOrder ? (
+                    <button className="create-button" onClick={handleCreate}>
+                        Δημιουργία Παραγγελίας
+                    </button>
+                ) : (
                     <button className="edit-button" onClick={handleEdit}>
                         Ενημέρωση Παραγγελίας
                     </button>
                 )}
 
-                <button
-                    className="cancel-button"
-                    onClick={() =>
-                        setNewOrder({
-                            quantity: 0,
-                            dateOfOrder: "",
-                            status: 1,
-                            materialText: "",
-                            materialStoreId: "",
-                            sizeName: "",
-                            storeTitle: "",
-                            userName: "",
-                        })
-                    }
-                >
+                <button className="cancel-button" onClick={resetOrderForm}>
                     Ακύρωση
                 </button>
             </div>
@@ -346,20 +518,18 @@ const OrderManagement = () => {
                         <td>{order.quantity}</td>
                         <td>{order.dateOfOrder}</td>
                         <td>{order.stock}</td>
-                        <td>{order.materialText}</td>
-                        <td>{order.sizeName}</td>
-                        <td>{order.storeTitle}</td>
-                        <td>{order.userName}</td>
-                        <td>
-                            {order.status === 1
-                                ? "Σε Εκκρεμότητα"
-                                : order.status === 2
-                                    ? "Ολοκληρωμένη"
-                                    : "Ακυρωμένη"}
+                        <td>{order.material?.text || order.materialText}</td>
+                        <td>{order.size?.name || order.sizeName}</td>
+                        <td>{order.store?.title || order.storeTitle}</td>
+                        <td>{order.user?.username || order.userName}</td>
+                        <td className={getStatusClassName(order.orderStatus || order.status)}>
+                            {OrderStatus.toGreekText(order.orderStatus) ||
+                                (typeof order.status === 'number' ?
+                                    OrderStatus.toGreekText(OrderStatus.fromLegacyStatus(order.status)) :
+                                    "Άγνωστη Κατάσταση")}
                         </td>
                         <td>
                             <div className="order-action-buttons">
-
                                 <button className="order-edit-button" title="Επεξεργασία" onClick={() => handleEditButtonClick(order.id)}>
                                     <i className="fa fa-edit"></i> Επεξεργασία
                                 </button>
@@ -373,7 +543,7 @@ const OrderManagement = () => {
                 </tbody>
             </table>
 
-            {/* Single confirmation modal */}
+            {/* Confirmation modal */}
             {isConfirmationOpen && (
                 <div className="confirmation-dialog">
                     <div className="confirmation-content">
@@ -398,8 +568,8 @@ const OrderManagement = () => {
                     Προηγούμενη
                 </button>
                 <span>
-          Σελίδα {currentPage + 1} από {totalPages}
-        </span>
+                    Σελίδα {currentPage + 1} από {totalPages}
+                </span>
                 <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage + 1 === totalPages}

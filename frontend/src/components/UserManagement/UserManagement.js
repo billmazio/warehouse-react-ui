@@ -286,14 +286,21 @@ const UserManagement = () => {
                                     )}
                                 </button>
 
-                                <button className="delete-button"
-                                        disabled={loggedInUserRole !== "SUPER_ADMIN"}
-                                        title={
-                                            loggedInUserRole !== "SUPER_ADMIN"
+                                <button
+                                    className="delete-button"
+                                    disabled={loggedInUserRole !== "SUPER_ADMIN" || user.isSystemEntity}
+                                    title={
+                                        user.isSystemEntity
+                                            ? "Αυτός ο χρήστης είναι προστατευμένος από το σύστημα"
+                                            : loggedInUserRole !== "SUPER_ADMIN"
                                                 ? "Μόνο ο Super Admin μπορεί να διαγράψει χρήστες"
                                                 : "Διαγραφή"
-                                        }
-                                        onClick={() => openConfirmationDialog(user)}>
+                                    }
+                                    onClick={() => {
+                                        if (loggedInUserRole !== "SUPER_ADMIN" || user.isSystemEntity) return;
+                                        openConfirmationDialog(user);
+                                    }}
+                                >
                                     <i className="fa fa-trash"></i> Διαγραφή
                                 </button>
                             </div>

@@ -1,3 +1,4 @@
+// userErrors.js
 const TEXTS = {
     CANNOT_DISABLE_OWN_ACCOUNT: "Δεν μπορείτε να απενεργοποιήσετε τον δικό σας λογαριασμό.",
     CANNOT_MODIFY_SUPER_ADMIN: "Δεν μπορείτε να τροποποιήσετε χρήστη SUPER_ADMIN.",
@@ -10,6 +11,7 @@ const TEXTS = {
     ACCESS_DENIED: "Δεν έχετε δικαίωμα για αυτή την ενέργεια.",
     BAD_REQUEST: "Μη έγκυρα δεδομένα.",
     CONFLICT_GENERIC: "Συνδεδεμένα δεδομένα.",
+    SYSTEM_USER_PROTECTED: "Αυτός ο χρήστης είναι προστατευμένος από το σύστημα και δεν μπορεί να διαγραφεί.",
     DEFAULT: "Παρουσιάστηκε σφάλμα. Παρακαλώ δοκιμάστε ξανά."
 };
 
@@ -41,6 +43,9 @@ export function userErrorToGreek(err, ctx = {}) {
     }
     if (/CANNOT_MODIFY_OTHER_STORE_USERS/i.test(msg)) {
         return TEXTS.CANNOT_MODIFY_OTHER_STORE_USERS;
+    }
+    if (/SYSTEM_USER_PROTECTED/i.test(msg) || /system entity/i.test(msg) || /προστατευμένος από το σύστημα/i.test(msg)) {
+        return TEXTS.SYSTEM_USER_PROTECTED;
     }
 
     // 3) Status-based fallbacks WITH context

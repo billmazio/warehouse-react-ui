@@ -193,16 +193,18 @@ export const fetchStores = async () => {
 
 export const createStore = async (storeData) => {
     try {
+        console.log("Creating store with data:", storeData);
+
         const response = await api.post("/api/stores", {
             title: storeData.title,
             address: storeData.address,
-            enable: storeData.enable ? 1 : 0, // Convert boolean to integer for 'enable'
-
+            status: storeData.status // Using status enum instead of enable
         });
+
         return response.data;
-    } catch (err) {
-        console.error("Error creating store:", err.response || err.message);
-        throw err;
+    } catch (error) {
+        console.error('Error creating store:', error.response || error.message);
+        throw error;
     }
 };
 
@@ -212,6 +214,24 @@ export const editStore = async (id, updatedData) => {
         return response.data;
     } catch (error) {
         console.error("Error updating store:", error.response || error.message);
+        throw error;
+    }
+};
+
+export const toggleStoreStatus = async (storeId, isActive) => {
+    try {
+        // Convert boolean to enum status string
+        const status = isActive ? 'ACTIVE' : 'INACTIVE';
+        console.log(`Toggling store ${storeId} status to ${status}`);
+
+        const response = await api.patch(`/api/stores/${storeId}/toggle-status`, {
+            status: status
+        });
+
+        console.log("Toggle response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error(`Error toggling store ${storeId} status:`, error.response || error.message);
         throw error;
     }
 };
@@ -329,13 +349,19 @@ export const createOrder = async (orderData) => {
         const response = await api.post("/api/orders",  {
             dateOfOrder: orderData.dateOfOrder,
             quantity: orderData.quantity,
-            sold: orderData.sold,
-            status: orderData.status,
-            stock: orderData.stock,
-            materialText: orderData.materialText,
-            sizeName: orderData.sizeName,
-            storeTitle:orderData.storeTitle,
-            userName:orderData.userName,
+            orderStatus: orderData.orderStatus,
+            store: {
+                title: orderData.store.title
+            },
+            material: {
+                text: orderData.material.text
+            },
+            size: {
+                name: orderData.size.name
+            },
+            user: {
+                username: orderData.user.username
+            }
         });
         return response.data;
     } catch (error) {
@@ -382,12 +408,6 @@ export const toggleUserStatus = async (userId, enableBool) => {
     return res.data;
 };
 
-export const toggleStoreStatus = async (storeId, enableBool) => {
-    const res = await api.patch(`/api/stores/${storeId}/toggle-status`, {
-        enable: !!enableBool
-    });
-    return res.data;   
-}
 
 
 

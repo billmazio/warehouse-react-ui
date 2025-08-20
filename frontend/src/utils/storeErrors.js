@@ -1,3 +1,4 @@
+// storeErrors.js
 const TEXTS = {
     STORE_ALREADY_EXISTS: "Υπάρχει ήδη αποθήκη με αυτόν τον τίτλο.",
     STORE_NOT_FOUND: "Η αποθήκη δεν βρέθηκε.",
@@ -10,6 +11,7 @@ const TEXTS = {
     INTEGRITY_VIOLATION: "Η αποθήκη δεν μπορεί να διαγραφεί επειδή υπάρχουν συνδεδεμένα δεδομένα.",
     BAD_REQUEST: "Μη έγκυρα δεδομένα.",
     CONFLICT_GENERIC: "Συνδεδεμένα δεδομένα.",
+    SYSTEM_STORE_PROTECTED: "Αυτή η αποθήκη είναι προστατευμένη από το σύστημα και δεν μπορεί να διαγραφεί.",
     DEFAULT: "Παρουσιάστηκε σφάλμα. Παρακαλώ δοκιμάστε ξανά."
 };
 
@@ -38,6 +40,9 @@ export function storeErrorToGreek(err, ctx = {}) {
     if (/enable status is required/i.test(msg)) return TEXTS.ENABLE_REQUIRED;
     if (/έχει συνδεδεμένα υλικά/i.test(msg)) return TEXTS.STORE_DELETE_HAS_MATERIALS;
     if (/έχει συνδεδεμένες παραγγελίες/i.test(msg)) return TEXTS.STORE_DELETE_HAS_ORDERS;
+    if (/SYSTEM_STORE_PROTECTED/i.test(msg) || /system entity/i.test(msg) || /προστατευμένη από το σύστημα/i.test(msg)) {
+        return TEXTS.SYSTEM_STORE_PROTECTED;
+    }
 
     // 3) Status-based fallbacks ΜΕ context
     if (status === 409) {

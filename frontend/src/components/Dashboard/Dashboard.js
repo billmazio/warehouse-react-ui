@@ -26,8 +26,14 @@ const Dashboard = () => {
             const storesData = await fetchStores();
 
             const activeStores = Array.isArray(storesData)
-                ? storesData.filter(store => store.enable === 1).length
+                ? storesData.filter(store =>
+                    // Check for both status enum and legacy enable field
+                    store.status === "ACTIVE" || store.enable === 1
+                ).length
                 : 0;
+
+            console.log("Active stores count:", activeStores);
+            console.log("Stores data:", storesData);
 
             setDashboardData({
                 user: dashboardResponse.user || 0,

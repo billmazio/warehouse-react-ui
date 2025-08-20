@@ -15,7 +15,47 @@ import "react-toastify/dist/ReactToastify.css";
 import "./StoreManagement.css";
 import { storeErrorToGreek } from "../../utils/storeErrors";
 
+// For debugging API calls
+const logStoreData = (store, operation) => {
+    console.log(`${operation} Store Data:`, JSON.stringify(store, null, 2));
+};
 
+// Store Status enum to match backend
+const StoreStatus = {
+    ACTIVE: "ACTIVE",
+    INACTIVE: "INACTIVE",
+
+    // Convert from old enable value to enum value
+    fromLegacyEnable: (enable) => {
+        return Number(enable) === 1 ? "ACTIVE" : "INACTIVE";
+    },
+
+    // Convert from enum status to display text
+    toGreekText: (status) => {
+        switch (status) {
+            case "ACTIVE": return "Ενεργή";
+            case "INACTIVE": return "Ανενεργή";
+            default: return "Άγνωστη Κατάσταση";
+        }
+    },
+
+    // Check if store is active
+    isActive: (status) => {
+        return status === "ACTIVE";
+    }
+};
+
+// CSS for status colors
+const statusStyles = `
+.status-active {
+    background-color: #4caf50;
+    color: white;
+}
+.status-inactive {
+    background-color: #f44336;
+    color: white;
+}
+`;
 
 const StoreManagement = () => {
     const [stores, setStores] = useState([]);
@@ -25,14 +65,14 @@ const StoreManagement = () => {
     const [editFormData, setEditFormData] = useState({
         title: "",
         address: "",
-        enable: 1,
+        status: "ACTIVE",
     });
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [storeToDelete, setStoreToDelete] = useState(null);
     const [newStore, setNewStore] = useState({
         title: "",
         address: "",
-        enable: 1,
+        status: "ACTIVE",
     });
 
     const [showDistributionForm, setShowDistributionForm] = useState(false);
@@ -46,6 +86,22 @@ const StoreManagement = () => {
     const [materials, setMaterials] = useState([]);
     const navigate = useNavigate();
 
+    // Get CSS class name for status styling
+    const getStatusClassName = (status) => {
+        // If we have a defined status, use it
+        if (status) {
+            switch (status) {
+                case "ACTIVE": return "status-active";
+                case "INACTIVE": return "status-inactive";
+                default: return "";
+            }
+        }
+
+        // Otherwise, we need to determine the status class from the legacy enable property
+        // This code should only run during the transition period
+        return ""; // Fallback empty class if no valid status found
+    };
+
     useEffect(() => {
         const loadData = async () => {
             try {
@@ -54,6 +110,8 @@ const StoreManagement = () => {
                     fetchUserDetails(),
                     fetchMaterials(),
                 ]);
+
+                console.log("Fetched stores:", storeData);
                 setStores(storeData);
                 setMaterials(materialsData);
 
@@ -97,6 +155,9 @@ const StoreManagement = () => {
         if (!editingStore) return;
 
         try {
+            // Log data for debugging
+            logStoreData(editFormData, "Update");
+
             await editStore(editingStore.id, editFormData);
             setStores(stores.map((s) => (s.id === editingStore.id ? { ...s, ...editFormData } : s)));
             toast.success("Η αποθήκη ενημερώθηκε επιτυχώς!");
@@ -108,27 +169,46 @@ const StoreManagement = () => {
     };
 
     const handleToggleStoreStatus = async (store) => {
-        const prev = store.enable;            // 0 or 1
-        const next = prev === 1 ? 0 : 1;      // flip
+        // Get current status
+        const currentStatus = store.status;
+        const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE";
 
-        // optimistic update
-        setStores(list => list.map(s => s.id === store.id ? { ...s, enable: next } : s));
+        // Convert to boolean for API function
+        const isActive = newStatus === "ACTIVE";
+
+        console.log(`Current status: ${currentStatus}, New status: ${newStatus}`);
+
+        // Optimistic update
+        setStores(list => list.map(s =>
+            s.id === store.id ? { ...s, status: newStatus } : s
+        ));
 
         try {
-            const updated = await apiToggleStoreStatus(store.id, next === 1);
+            console.log(`Toggling store ${store.id} status to ${newStatus}`);
 
-            // sync with server truth
-            setStores(list => list.map(s =>
-                s.id === store.id ? { ...s, enable: updated.enable } : s
-            ));
+            // Call the API function to toggle status
+            const response = await apiToggleStoreStatus(store.id, isActive);
+            console.log("Toggle response:", response);
+
+            // Update store with response data if available
+            if (response && response.status) {
+                setStores(list => list.map(s =>
+                    s.id === store.id ? { ...s, status: response.status } : s
+                ));
+            }
 
             toast.success(
-                `Η αποθήκη "${store.title}" ${updated.enable === 1 ? "ενεργοποιήθηκε" : "απενεργοποιήθηκε"} επιτυχώς.`
+                `Η αποθήκη "${store.title}" ${isActive ? "ενεργοποιήθηκε" : "απενεργοποιήθηκε"} επιτυχώς.`
             );
         } catch (err) {
-            // rollback
-            setStores(list => list.map(s => s.id === store.id ? { ...s, enable: prev } : s));
-            console.error("store toggle error:", err?.response?.status, err?.response?.data);
+            // Rollback on error
+            setStores(list => list.map(s =>
+                s.id === store.id ? { ...s, status: currentStatus } : s
+            ));
+            console.error("Store toggle error:", err);
+            if (err.response) {
+                console.error("Error response:", err.response.data);
+            }
             toast.error(storeErrorToGreek(err));
         }
     };
@@ -140,9 +220,12 @@ const StoreManagement = () => {
         }
 
         try {
+            // Log data for debugging
+            logStoreData(newStore, "Create");
+
             const createdStore = await createStore(newStore);
             setStores([...stores, createdStore]);
-            setNewStore({ title: "", address: "", enable: 1 });
+            setNewStore({ title: "", address: "", status: "ACTIVE" });
             toast.success("Η αποθήκη δημιουργήθηκε επιτυχώς.");
         } catch (err) {
             console.error("create store error:", err);
@@ -179,8 +262,18 @@ const StoreManagement = () => {
         }
     };
 
+    // Helper function to check if a store is active
+    const isStoreActive = (store) => {
+        // Handle both new status enum and legacy enable property
+        if (store.status) {
+            return store.status === "ACTIVE";
+        }
+        return store.enable === 1;
+    };
+
     return (
         <div className="store-management-container">
+            <style>{statusStyles}</style>
             <ToastContainer />
             <button onClick={() => navigate("/dashboard")} className="back-button">
                 Πίσω στην Κεντρική Διαχείριση
@@ -204,12 +297,14 @@ const StoreManagement = () => {
                         onChange={(e) => setNewStore({ ...newStore, address: e.target.value })}
                     />
                     <label>
-                        Enable:
-                        <input
-                            type="checkbox"
-                            checked={newStore.enable === 1}
-                            onChange={(e) => setNewStore({ ...newStore, enable: e.target.checked ? 1 : 0 })}
-                        />
+                        Κατάσταση:
+                        <select
+                            value={newStore.status}
+                            onChange={(e) => setNewStore({ ...newStore, status: e.target.value })}
+                        >
+                            <option value="ACTIVE">Ενεργή</option>
+                            <option value="INACTIVE">Ανενεργή</option>
+                        </select>
                     </label>
                     <button className="create-button" onClick={handleCreate}>
                         Δημιουργία Αποθήκης
@@ -221,7 +316,7 @@ const StoreManagement = () => {
                                 setNewStore({
                                     title: "",
                                     address: "",
-                                    enable: 1,
+                                    status: "ACTIVE",
                                 })
                             }
                         >
@@ -249,26 +344,27 @@ const StoreManagement = () => {
                         <td>{store.title}</td>
                         <td>{store.address}</td>
                         <td>
-                    <span className={`status-badge ${store.enable === 1 ? 'active' : 'inactive'}`}>
-                        {store.enable === 1 ? "Ενεργή" : "Ανενεργή"}
-                    </span>
+                            <span className={`status-badge ${store.status ? getStatusClassName(store.status) : (store.enable === 1 ? "status-active" : "status-inactive")}`}>
+                                {store.status ? StoreStatus.toGreekText(store.status) :
+                                    (store.enable === 1 ? "Ενεργή" : "Ανενεργή")}
+                            </span>
                         </td>
                         <td>
                             <div className="action-buttons">
-                                {/* Toggle Status Button (unchanged) */}
+                                {/* Toggle Status Button */}
                                 <button
-                                    className={`toggle-button ${store.enable === 1 ? "deactivate" : "activate"}`}
+                                    className={`toggle-button ${isStoreActive(store) ? "deactivate" : "activate"}`}
                                     onClick={() => handleToggleStoreStatus(store)}
                                     disabled={loggedInUserRole !== "SUPER_ADMIN"}
                                     title={
                                         loggedInUserRole !== "SUPER_ADMIN"
                                             ? "Μόνο ο Super Admin μπορεί να αλλάξει την κατάσταση"
-                                            : store.enable === 1
+                                            : isStoreActive(store)
                                                 ? "Απενεργοποίηση αποθήκης"
                                                 : "Ενεργοποίηση αποθήκης"
                                     }
                                 >
-                                    {store.enable === 1 ? (
+                                    {isStoreActive(store) ? (
                                         <>
                                             <i className="fa fa-toggle-on" /> Απενεργοποίηση
                                         </>
@@ -294,7 +390,7 @@ const StoreManagement = () => {
                                         setEditFormData({
                                             title: store.title,
                                             address: store.address,
-                                            enable: store.enable,
+                                            status: store.status || StoreStatus.fromLegacyEnable(store.enable),
                                         });
                                     }}
                                 >
@@ -304,10 +400,10 @@ const StoreManagement = () => {
                                 {/* View is disabled when the store is inactive */}
                                 <button
                                     className="view-button"
-                                    disabled={store.enable !== 1}
-                                    title={store.enable !== 1 ? "Η αποθήκη είναι ανενεργή" : "Προβολή"}
+                                    disabled={!isStoreActive(store)}
+                                    title={!isStoreActive(store) ? "Η αποθήκη είναι ανενεργή" : "Προβολή"}
                                     onClick={() => {
-                                        if (store.enable !== 1) return;
+                                        if (!isStoreActive(store)) return;
                                         navigate(`/dashboard/manage-stores/${store.id}/materials`);
                                     }}
                                 >
@@ -317,14 +413,16 @@ const StoreManagement = () => {
                                 {/* Delete (only SUPER_ADMIN) */}
                                 <button
                                     className="delete-button"
-                                    disabled={loggedInUserRole !== "SUPER_ADMIN"}
+                                    disabled={loggedInUserRole !== "SUPER_ADMIN" || store.isSystemEntity}
                                     title={
-                                        loggedInUserRole !== "SUPER_ADMIN"
-                                            ? "Μόνο ο Super Admin μπορεί να διαγράψει αποθήκες"
-                                            : "Διαγραφή"
+                                        store.isSystemEntity
+                                            ? "Αυτή η αποθήκη είναι προστατευμένη από το σύστημα"
+                                            : loggedInUserRole !== "SUPER_ADMIN"
+                                                ? "Μόνο ο Super Admin μπορεί να διαγράψει αποθήκες"
+                                                : "Διαγραφή"
                                     }
                                     onClick={() => {
-                                        if (loggedInUserRole !== "SUPER_ADMIN") return;
+                                        if (loggedInUserRole !== "SUPER_ADMIN" || store.isSystemEntity) return;
                                         openConfirmationDialog(store);
                                     }}
                                 >
@@ -353,18 +451,15 @@ const StoreManagement = () => {
                         value={editFormData.address}
                         onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
                     />
-                    <div className="checkbox-container">
-                        <label>Enable:</label>
-                        <input
-                            type="checkbox"
-                            checked={editFormData.enable === 1}
-                            onChange={(e) =>
-                                setEditFormData({
-                                    ...editFormData,
-                                    enable: e.target.checked ? 1 : 0,
-                                })
-                            }
-                        />
+                    <div className="status-select-container">
+                        <label>Κατάσταση:</label>
+                        <select
+                            value={editFormData.status}
+                            onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+                        >
+                            <option value="ACTIVE">Ενεργή</option>
+                            <option value="INACTIVE">Ανενεργή</option>
+                        </select>
                     </div>
                     <div className="edit-actions">
                         <button className="cancel-button" onClick={() => setEditingStore(null)}>
@@ -395,11 +490,13 @@ const StoreManagement = () => {
                         }}
                     >
                         <option value="">Επιλέξτε Αποθήκη Προέλευσης</option>
-                        {stores.map((store) => (
-                            <option key={store.id} value={store.id}>
-                                {store.title}
-                            </option>
-                        ))}
+                        {stores
+                            .filter(store => isStoreActive(store)) // Only show active stores
+                            .map((store) => (
+                                <option key={store.id} value={store.id}>
+                                    {store.title}
+                                </option>
+                            ))}
                     </select>
 
                     {/* Second Dropdown: Select Material (Filtered by Selected Store) */}
@@ -425,7 +522,7 @@ const StoreManagement = () => {
                     >
                         <option value="">Επιλέξτε Αποθήκη Προορισμού</option>
                         {stores
-                            .filter((s) => s.id !== Number(distributionData.storeId))
+                            .filter(store => isStoreActive(store) && store.id !== Number(distributionData.storeId))
                             .map((s) => (
                                 <option key={s.id} value={s.id}>
                                     {s.title}
