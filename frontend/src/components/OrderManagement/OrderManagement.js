@@ -51,6 +51,7 @@ const OrderManagement = () => {
     const [newOrder, setNewOrder] = useState({
         quantity: 0,
         dateOfOrder: "",
+        stock:"",
         orderStatus: "PENDING",
         user: { username: "" },
         store: { title: "" },

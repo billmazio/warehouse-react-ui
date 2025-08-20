@@ -29,8 +29,8 @@ const StoreStatus = {
 
     toGreekText: (status) => {
         switch (status) {
-            case "ACTIVE": return "Ενεργή";
-            case "INACTIVE": return "Ανενεργή";
+            case "ACTIVE": return "ΕΝΕΡΓΗ";
+            case "INACTIVE": return "ΑΝΕΝΕΡΓΗ";
             default: return "Άγνωστη Κατάσταση";
         }
     },
@@ -40,14 +40,17 @@ const StoreStatus = {
     }
 };
 
+// Enhanced status styles - full cell background like OrderManagement
 const statusStyles = `
 .status-active {
-    background-color: #4caf50;
-    color: white;
+    background-color: #4caf50 !important; 
+    color: white !important;
+    font-weight: bold !important;
 }
 .status-inactive {
-    background-color: #f44336;
-    color: white;
+    background-color: #f44336 !important;
+    color: white !important;
+    font-weight: bold !important;
 }
 `;
 
@@ -80,18 +83,18 @@ const StoreManagement = () => {
     const [materials, setMaterials] = useState([]);
     const navigate = useNavigate();
 
+    // Enhanced getStatusClassName function - similar to OrderManagement
     const getStatusClassName = (status) => {
-        if (status) {
-            switch (status) {
-                case "ACTIVE": return "status-active";
-                case "INACTIVE": return "status-inactive";
-                default: return "";
-            }
+        if (typeof status === 'number') {
+            // Handle legacy status
+            status = status === 1 ? "ACTIVE" : "INACTIVE";
         }
 
-        // Otherwise, we need to determine the status class from the legacy enable property
-        // This code should only run during the transition period
-        return ""; // Fallback empty class if no valid status found
+        switch (status) {
+            case "ACTIVE": return "status-active";
+            case "INACTIVE": return "status-inactive";
+            default: return "";
+        }
     };
 
     useEffect(() => {
@@ -324,38 +327,12 @@ const StoreManagement = () => {
                     <tr key={store.id}>
                         <td>{store.title}</td>
                         <td>{store.address}</td>
-                        <td>
-                            <span className={`status-badge ${store.status ? getStatusClassName(store.status) : (store.enable === 1 ? "status-active" : "status-inactive")}`}>
-                                {store.status ? StoreStatus.toGreekText(store.status) :
-                                    (store.enable === 1 ? "Ενεργή" : "Ανενεργή")}
-                            </span>
+                        <td className={getStatusClassName(store.status || (store.enable === 1 ? "ACTIVE" : "INACTIVE"))}>
+                            {store.status ? StoreStatus.toGreekText(store.status) :
+                                (store.enable === 1 ? "ΕΝΕΡΓΗ" : "ΑΝΕΝΕΡΓΗ")}
                         </td>
                         <td>
                             <div className="action-buttons">
-                                {/* Toggle Status Button */}
-                                <button
-                                    className={`toggle-button ${isStoreActive(store) ? "deactivate" : "activate"}`}
-                                    onClick={() => handleToggleStoreStatus(store)}
-                                    disabled={loggedInUserRole !== "SUPER_ADMIN"}
-                                    title={
-                                        loggedInUserRole !== "SUPER_ADMIN"
-                                            ? "Μόνο ο Super Admin μπορεί να αλλάξει την κατάσταση"
-                                            : isStoreActive(store)
-                                                ? "Απενεργοποίηση αποθήκης"
-                                                : "Ενεργοποίηση αποθήκης"
-                                    }
-                                >
-                                    {isStoreActive(store) ? (
-                                        <>
-                                            <i className="fa fa-toggle-on" /> Απενεργοποίηση
-                                        </>
-                                    ) : (
-                                        <>
-                                            <i className="fa fa-toggle-off" /> Ενεργοποίηση
-                                        </>
-                                    )}
-                                </button>
-
                                 {/* Edit (only SUPER_ADMIN) */}
                                 <button
                                     className="edit-button"

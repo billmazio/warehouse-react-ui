@@ -12,8 +12,6 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./UserManagement.css";
 import { userErrorToGreek } from "../../utils/userErrors";
-import { storeErrorToGreek } from "../../utils/storeErrors";
-
 const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/;
 
 // Define UserStatus for better code consistency
@@ -24,8 +22,8 @@ const UserStatus = {
     // Get display text for status
     toGreekText: (status) => {
         switch (status) {
-            case "ACTIVE": return "Ενεργός";
-            case "INACTIVE": return "Ανενεργός";
+            case "ACTIVE": return "ΕΝΕΡΓΟΣ";
+            case "INACTIVE": return "ΑΝΕΝΕΡΓΟΣ";
             default: return "Άγνωστη Κατάσταση";
         }
     },
@@ -44,6 +42,20 @@ const UserStatus = {
         return enable === 1 ? "ACTIVE" : "INACTIVE";
     }
 };
+
+// Enhanced status styles - full cell background like Order and Store Management
+const statusStyles = `
+.status-active {
+    background-color: #4caf50 !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+.status-inactive {
+    background-color: #f44336 !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+`;
 
 const UserManagement = () => {
     const navigate = useNavigate();
@@ -219,6 +231,7 @@ const UserManagement = () => {
 
     return (
         <div className="user-management-container">
+            <style>{statusStyles}</style>
             <ToastContainer />
             <button onClick={() => navigate("/dashboard")} className="back-button">
                 Πίσω στην Κεντρική Διαχείριση
@@ -320,10 +333,8 @@ const UserManagement = () => {
                     <tr key={user.id}>
                         <td>{user.username}</td>
                         <td>{(user.roles || []).map((r) => r.name).join(", ")}</td>
-                        <td>
-                            <span className={`status-badge ${UserStatus.getClassName(getUserStatus(user))}`}>
-                                {UserStatus.toGreekText(getUserStatus(user))}
-                            </span>
+                        <td className={UserStatus.getClassName(getUserStatus(user))}>
+                            {UserStatus.toGreekText(getUserStatus(user))}
                         </td>
                         <td>{user.store?.title || "N/A"}</td>
                         <td>

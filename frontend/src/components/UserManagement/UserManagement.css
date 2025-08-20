@@ -77,7 +77,6 @@
     background-color: #0056b3; /* darker blue */
 }
 
-
 /* Button styles */
 .create-button {
     background-color: #28a745;
@@ -313,59 +312,60 @@
     background-color: #138496;
 }
 
-/* Status badges */
-.status-badge {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
+/* Enhanced Status Styling - Full cell background like Order and Store Management */
 .status-active {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+    background-color: #4caf50 !important;
+    color: white !important;
+    font-weight: bold !important;
 }
 
 .status-inactive {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background-color: #f44336 !important;
+    color: white !important;
+    font-weight: bold !important;
 }
 
-.status-pending {
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeaa7;
+.toggle-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    min-width: 140px;
+    white-space: nowrap;
 }
 
-.role-badge {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.toggle-button.activate {
+    background-color: #e8f5e8;
+    color: #2d5016;
+    border: 1px solid #4caf50;
 }
 
-.role-admin {
-    background-color: #e7f3ff;
-    color: #0056b3;
-    border: 1px solid #b3d9ff;
+.toggle-button.activate:hover {
+    background-color: #c8e6c9;
+    transform: translateY(-1px);
 }
 
-.role-user {
-    background-color: #f0f9ff;
-    color: #1e40af;
-    border: 1px solid #c7d2fe;
+.toggle-button.deactivate {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #f44336;
 }
 
-.role-moderator {
-    background-color: #fef3e2;
-    color: #b45309;
-    border: 1px solid #fed7aa;
+.toggle-button.deactivate:hover {
+    background-color: #ffcdd2;
+    transform: translateY(-1px);
+}
+
+.toggle-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* Responsive Media Queries */
@@ -521,52 +521,6 @@
     justify-content: center;
 }
 
-.status-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    border: 1px solid transparent;
-}
-.status-badge.active {
-    background: #e8f8ed;
-    color: #1e7e34;
-    border-color: #c7ecd2;
-}
-.status-badge.inactive {
-    background: #f2f2f2;
-    color: #6c757d;
-    border-color: #e0e0e0;
-}
-
-.toggle-button {
-    border: none;
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 600;
-    transition: transform 0.05s ease, opacity 0.2s ease;
-}
-.toggle-button i {
-    font-size: 1rem;
-}
-.toggle-button.activate {
-    background: #198754;
-    color: #fff;
-}
-.toggle-button.deactivate {
-    background: #dc3545;
-    color: #fff;
-}
-.toggle-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 @media (max-width: 768px) {
     .action-buttons {
         flex-direction: column;
@@ -578,6 +532,3 @@
         padding: 5px 10px;
     }
 }
-
-
-
