@@ -6,7 +6,8 @@ import {
     deleteMaterial,
     editMaterial,
     fetchUserDetails,
-    fetchStores
+    fetchStores,
+    fetchOrders // Add this import for checking existing orders
 } from "../../services/api";
 import "./MaterialsList.css";
 import { ToastContainer, toast } from "react-toastify";
@@ -53,6 +54,49 @@ const CentralMaterialsList = () => {
         loadUserDetails();
     }, []);
 
+    // Function to check if there are existing orders using this material with the current size
+    const checkExistingOrders = async (materialId, currentSizeId, materialText) => {
+        try {
+            // Fetch all orders to check for conflicts
+            const ordersResponse = await fetchOrders(0, 1000, null, null, "", ""); // Get many orders
+            const orders = ordersResponse.content || [];
+
+            // Find the current size name
+            const currentSize = sizes.find(s => s.id === currentSizeId);
+            const currentSizeName = currentSize ? currentSize.name : "";
+
+            // Check for orders that use this material and size combination
+            const conflictingOrders = orders.filter(order => {
+                // Check if the order uses this material (by materialStoreId or material.id)
+                const usesMaterial =
+                    order.materialStoreId === materialId ||
+                    order.material?.id === materialId ||
+                    (order.material?.text === materialText && order.store?.title === getStoreTitle(editingMaterial?.storeId));
+
+                // Check if the order uses the current size
+                const usesCurrentSize =
+                    order.size?.name === currentSizeName ||
+                    order.sizeName === currentSizeName;
+
+                return usesMaterial && usesCurrentSize;
+            });
+
+            return {
+                hasConflicts: conflictingOrders.length > 0,
+                conflictCount: conflictingOrders.length,
+                conflictingOrders: conflictingOrders
+            };
+        } catch (err) {
+            console.error("Error checking existing orders:", err);
+            // If we can't check, assume there might be conflicts for safety
+            return {
+                hasConflicts: true,
+                conflictCount: 0,
+                conflictingOrders: []
+            };
+        }
+    };
+
     const loadMaterials = useCallback(async () => {
         try {
             const response = await fetchAllMaterialsPaginated(currentPage, 5, filterText, filterSize);
@@ -94,10 +138,6 @@ const CentralMaterialsList = () => {
     }, [loadMaterials, loadSizes, loadStores]);
 
     const handleEditClick = (material) => {
-  /*      if (loggedInUserRole !== "SUPER_ADMIN") {
-            toast.error("Δεν έχετε δικαίωμα να επεξεργαστείτε προϊόντα.");
-            return;
-        }*/
         setEditingMaterial(material);
         setEditFormData({
             text: material.text,
@@ -107,12 +147,7 @@ const CentralMaterialsList = () => {
     };
 
     const handleSaveEdit = async () => {
-       /* if (loggedInUserRole !== "SUPER_ADMIN") {
-            toast.error("Δεν έχετε δικαίωμα να αποθηκεύσετε αλλαγές.");
-            return;
-        }*/
-
-        // basic validation
+        // Basic validation
         const qty = Number(editFormData.quantity);
         if (!editFormData.text.trim()) {
             toast.error("Παρακαλώ συμπληρώστε την περιγραφή προϊόντος.");
@@ -125,6 +160,40 @@ const CentralMaterialsList = () => {
         if (!qty || qty <= 0) {
             toast.error("Παρακαλώ συμπληρώστε έγκυρη ποσότητα.");
             return;
+        }
+
+        // Check if size is being changed
+        const originalSizeId = editingMaterial.sizeId;
+        const newSizeId = editFormData.sizeId;
+
+        if (String(originalSizeId) !== String(newSizeId)) {
+            // Size is being changed - check for existing orders
+            toast.info("Έλεγχος υπαρχουσών παραγγελιών...", { autoClose: 2000 });
+
+            const conflictCheck = await checkExistingOrders(
+                editingMaterial.id,
+                originalSizeId,
+                editingMaterial.text
+            );
+
+            if (conflictCheck.hasConflicts) {
+                const originalSize = sizes.find(s => s.id === originalSizeId);
+                const newSize = sizes.find(s => s.id === newSizeId);
+
+                toast.error(
+                    `❌ Δεν μπορείτε να αλλάξετε το μέγεθος από "${originalSize?.name}" σε "${newSize?.name}" ` +
+                    `γιατί υπάρχουν ${conflictCheck.conflictCount} παραγγελίες που χρησιμοποιούν αυτό το προϊόν με το τρέχον μέγεθος.\n\n` +
+                    `💡 Προτάσεις:\n` +
+                    `• Διαγράψτε πρώτα όλες τις παραγγελίες που χρησιμοποιούν αυτό το προϊόν\n` +
+                    `• Ή δημιουργήστε νέο προϊόν με το νέο μέγεθος\n` +
+                    `• Ή αλλάξτε μόνο την περιγραφή και την ποσότητα`,
+                    {
+                        autoClose: 8000,
+                        style: { whiteSpace: 'pre-line' }
+                    }
+                );
+                return;
+            }
         }
 
         try {

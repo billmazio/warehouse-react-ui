@@ -1291,3 +1291,111 @@ h2 {
         padding: 20px;
     }
 }
+/* Updated CSS to fix the orange edit button issue */
+
+.warning-summary {
+    margin-bottom: 20px;
+}
+
+.warning-banner {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.warning-banner i {
+    font-size: 18px;
+    color: #f39c12;
+}
+
+.warning-banner strong {
+    font-weight: bold;
+}
+
+/* Warning row styling */
+.order-row-warning {
+    background-color: #fef9e7 !important;
+    border-left: 4px solid #f39c12 !important;
+}
+
+.order-row-warning:hover {
+    background-color: #fef5d3 !important;
+}
+
+/* Material and size cells with warnings */
+.material-cell,
+.size-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+
+.warning-icon {
+    font-size: 16px;
+    color: #f39c12;
+    cursor: help;
+    animation: warning-pulse 2s infinite;
+}
+
+/* Subtle pulsing animation for warning icons */
+@keyframes warning-pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+/* Tooltip styling for warning messages */
+.warning-icon[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: normal;
+    max-width: 300px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Action buttons container */
+.order-action-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 767px) {
+    .warning-banner {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .material-cell,
+    .size-cell {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .warning-icon {
+        font-size: 14px;
+    }
+
+    .order-action-buttons {
+        flex-direction: column;
+        gap: 4px;
+    }
+}

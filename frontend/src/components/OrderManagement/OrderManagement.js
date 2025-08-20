@@ -24,20 +24,24 @@ const logOrderData = (order, operation) => {
 // CSS for status colors
 const statusStyles = `
 .status-pending {
-    color: #ff9800;
-    font-weight: bold;
+    background-color: #ff9800 !important;
+    color: white !important;
+    font-weight: bold !important;
 }
 .status-processing {
-    color: #2196f3;
-    font-weight: bold;
+    background-color: #2196f3 !important;
+    color: white !important;
+    font-weight: bold !important;
 }
 .status-completed {
-    color: #4caf50;
-    font-weight: bold;
+    background-color: #4caf50 !important;
+    color: white !important;
+    font-weight: bold !important;
 }
 .status-cancelled {
-    color: #f44336;
-    font-weight: bold;
+    background-color: #f44336 !important;
+    color: white !important;
+    font-weight: bold !important;
 }
 `;
 
@@ -48,6 +52,7 @@ const OrderManagement = () => {
     const [materials, setMaterials] = useState([]);
     const [sizes, setSizes] = useState([]);
     const [orders, setOrders] = useState([]);
+    const [materialSizeWarnings, setMaterialSizeWarnings] = useState(new Set());
     const [newOrder, setNewOrder] = useState({
         quantity: 0,
         dateOfOrder: "",
@@ -138,6 +143,138 @@ const OrderManagement = () => {
 
     const [orderToDelete, setOrderToDelete] = useState(null);
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+
+    // Function to check if a material/size combination still exists
+    const checkMaterialSizeExistence = async () => {
+        try {
+            const warningSet = new Set();
+
+            // Check each order for potential issues
+            for (const order of orders) {
+                const materialText = order.material?.text || order.materialText;
+                const sizeName = order.size?.name || order.sizeName;
+                const storeTitle = order.store?.title || order.storeTitle;
+
+                if (materialText && sizeName && storeTitle) {
+                    // Check if this material/size combination still exists in materials
+                    const matchingMaterial = materials.find(material =>
+                        material.text === materialText &&
+                        material.sizeName === sizeName &&
+                        stores.find(store => store.id === material.storeId)?.title === storeTitle
+                    );
+
+                    if (!matchingMaterial) {
+                        warningSet.add(order.id);
+                    }
+                }
+            }
+
+            setMaterialSizeWarnings(warningSet);
+        } catch (err) {
+            console.error("Error checking material/size existence:", err);
+        }
+    };
+
+    // Run the check whenever orders, materials, or stores change
+    useEffect(() => {
+        if (orders.length > 0 && materials.length > 0 && stores.length > 0) {
+            checkMaterialSizeExistence();
+        }
+    }, [orders, materials, stores]);
+
+    // Function to get warning message for an order
+    const getWarningMessage = (order) => {
+        if (!materialSizeWarnings.has(order.id)) return null;
+
+        const materialText = order.material?.text || order.materialText;
+        const sizeName = order.size?.name || order.sizeName;
+
+        return `⚠️ Προειδοποίηση: Το υλικό "${materialText}" με μέγεθος "${sizeName}" δεν υπάρχει πλέον στα διαθέσιμα προϊόντα. Αυτή η παραγγελία ενδέχεται να έχει ξεπερασμένες πληροφορίες.`;
+    };
+
+    // Add warning summary at the top of the table
+    const renderWarningSummary = () => {
+        if (materialSizeWarnings.size === 0) return null;
+
+        return (
+            <div className="warning-summary">
+                <div className="warning-banner">
+                    <i className="fa fa-exclamation-triangle"></i>
+                    <span>
+                        <strong>Προειδοποίηση:</strong> {materialSizeWarnings.size} παραγγελία(ες)
+                        αναφέρονται σε προϊόντα που δεν υπάρχουν πλέον στα διαθέσιμα υλικά.
+                        Ελέγξτε τις παραγγελίες με το σύμβολο ⚠️ για περισσότερες πληροφορίες.
+                    </span>
+                </div>
+            </div>
+        );
+    };
+
+    // Enhanced table row with warning indicator
+    const renderOrderRow = (order) => {
+        const hasWarning = materialSizeWarnings.has(order.id);
+        const warningMessage = getWarningMessage(order);
+
+        return (
+            <tr key={order.id} className={hasWarning ? "order-row-warning" : ""}>
+                <td>{order.quantity}</td>
+                <td>{order.dateOfOrder}</td>
+                <td>{order.stock}</td>
+                <td>
+                    <div className="material-cell">
+                        {order.material?.text || order.materialText}
+                        {hasWarning && (
+                            <span
+                                className="warning-icon"
+                                title={warningMessage}
+                            >
+                                ⚠️
+                            </span>
+                        )}
+                    </div>
+                </td>
+                <td>
+                    <div className="size-cell">
+                        {order.size?.name || order.sizeName}
+                        {hasWarning && (
+                            <span
+                                className="warning-icon"
+                                title={warningMessage}
+                            >
+                                ⚠️
+                            </span>
+                        )}
+                    </div>
+                </td>
+                <td>{order.store?.title || order.storeTitle}</td>
+                <td>{order.user?.username || order.userName}</td>
+                <td className={getStatusClassName(order.orderStatus || order.status)}>
+                    {OrderStatus.toGreekText(order.orderStatus) ||
+                        (typeof order.status === 'number' ?
+                            OrderStatus.toGreekText(OrderStatus.fromLegacyStatus(order.status)) :
+                            "Άγνωστη Κατάσταση")}
+                </td>
+                <td>
+                    <div className="order-action-buttons">
+                        <button
+                            className="order-edit-button"
+                            title={hasWarning ? "Προσοχή: Αυτή η παραγγελία έχει ξεπερασμένες πληροφορίες" : "Επεξεργασία"}
+                            onClick={() => handleEditButtonClick(order.id)}
+                        >
+                            <i className="fa fa-edit"></i> Επεξεργασία
+                        </button>
+                        <button
+                            className="order-delete-button"
+                            title="Διαγραφή"
+                            onClick={() => openConfirmationDialog(order)}
+                        >
+                            <i className="fa fa-trash"></i> Διαγραφή
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        );
+    };
 
     // Load data for the component
     const loadData = async (page = 0, size = 5) => {
@@ -498,6 +635,8 @@ const OrderManagement = () => {
                 </button>
             </div>
 
+            {renderWarningSummary()}
+
             <h2>Λίστα Παραγγελιών</h2>
             <table className="order-table">
                 <thead>
@@ -514,33 +653,7 @@ const OrderManagement = () => {
                 </tr>
                 </thead>
                 <tbody>
-                {orders.map((order) => (
-                    <tr key={order.id}>
-                        <td>{order.quantity}</td>
-                        <td>{order.dateOfOrder}</td>
-                        <td>{order.stock}</td>
-                        <td>{order.material?.text || order.materialText}</td>
-                        <td>{order.size?.name || order.sizeName}</td>
-                        <td>{order.store?.title || order.storeTitle}</td>
-                        <td>{order.user?.username || order.userName}</td>
-                        <td className={getStatusClassName(order.orderStatus || order.status)}>
-                            {OrderStatus.toGreekText(order.orderStatus) ||
-                                (typeof order.status === 'number' ?
-                                    OrderStatus.toGreekText(OrderStatus.fromLegacyStatus(order.status)) :
-                                    "Άγνωστη Κατάσταση")}
-                        </td>
-                        <td>
-                            <div className="order-action-buttons">
-                                <button className="order-edit-button" title="Επεξεργασία" onClick={() => handleEditButtonClick(order.id)}>
-                                    <i className="fa fa-edit"></i> Επεξεργασία
-                                </button>
-                                <button className="order-delete-button" title="Διαγραφή" onClick={() => openConfirmationDialog(order)}>
-                                    <i className="fa fa-trash"></i> Διαγραφή
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                ))}
+                {orders.map((order) => renderOrderRow(order))}
                 </tbody>
             </table>
 

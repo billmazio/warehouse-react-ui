@@ -311,19 +311,23 @@ export const deleteMaterial = async (id) => {
 
 export const distributeMaterial = async (payload) => {
     try {
-        const response = await api.post(
-            `/api/materials/${payload.materialId}/distribute`,
-            {
-                receiverStoreId: payload.receiverStoreId,
-                quantity: payload.quantity,
-            }
-        );
+        console.log('Distributing material with payload:', payload);
+
+        // Fixed: Remove materialId from URL path and include it in request body
+        const response = await api.post('/api/materials/distribute', {
+            materialId: payload.materialId,      // Include materialId in body
+            receiverStoreId: payload.receiverStoreId,
+            quantity: payload.quantity,
+        });
+
+        console.log('Distribution response:', response.data);
         return response.data;
     } catch (error) {
         console.error("Error distributing material:", error);
+        console.error("Error details:", error.response?.data);
         throw error;
     }
-};
+};;
 
 export const fetchSizes = async () => {
     const response = await api.get("/api/sizes");
@@ -335,7 +339,7 @@ export const fetchOrders = async (page = 0, size = 5, storeId = null, userId = n
         const response = await api.get("/api/orders/paginated", {
             params: { page, size, storeId, userId, materialText, sizeName },
         });
-        return response.data; // Assuming response contains { content, totalPages, number }
+        return response.data;
     } catch (error) {
         console.error("Error fetching orders:", error);
         throw error;
