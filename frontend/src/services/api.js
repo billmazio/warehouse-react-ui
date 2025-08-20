@@ -220,7 +220,6 @@ export const editStore = async (id, updatedData) => {
 
 export const toggleStoreStatus = async (storeId, isActive) => {
     try {
-        // Convert boolean to enum status string
         const status = isActive ? 'ACTIVE' : 'INACTIVE';
         console.log(`Toggling store ${storeId} status to ${status}`);
 
@@ -345,7 +344,6 @@ export const fetchOrders = async (page = 0, size = 5, storeId = null, userId = n
 
 export const createOrder = async (orderData) => {
     try {
-        // Make sure to include the full backend URL if needed
         const response = await api.post("/api/orders",  {
             dateOfOrder: orderData.dateOfOrder,
             quantity: orderData.quantity,
@@ -401,11 +399,21 @@ export const createMaterial = async (materialData) => {
 
 };
 
-export const toggleUserStatus = async (userId, enableBool) => {
-    const res = await api.patch(`/api/users/${userId}/toggle-status`, {
-        enable: !!enableBool,
-    });
-    return res.data;
+export const toggleUserStatus = async (userId, isActive) => {
+    try {
+        const status = isActive ? 'ACTIVE' : 'INACTIVE';
+        console.log(`Toggling user ${userId} status to ${status}`);
+
+        const response = await api.patch(`/api/users/${userId}/toggle-status`, {
+            status: status
+        });
+
+        console.log("Toggle response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error(`Error toggling user ${userId} status:`, error.response || error.message);
+        throw error;
+    }
 };
 
 

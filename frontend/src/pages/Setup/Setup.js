@@ -63,13 +63,18 @@ const Setup = () => {
         setIsLoading(true);
 
         try {
-            // Ensure the storeTitle field matches exactly what your backend expects
-            const setupResponse = await axios.post('http://localhost:8080/api/setup', {
+            // Include the status field for the store
+            const setupData = {
                 username,
                 password,
-                storeTitle: storeName, // Make sure this matches your DTO field name
-                storeAddress: 'Αθήνα Σόλωνος 5' // Include a default address
-            });
+                storeTitle: storeName,
+                storeAddress: 'Αθήνα Σόλωνος 5',
+                status: 'ACTIVE' // Add the status field
+            };
+
+            console.log('Sending setup data:', setupData);
+
+            const setupResponse = await axios.post('http://localhost:8080/api/setup', setupData);
 
             console.log('Setup Successful:', setupResponse.data);
             alert('Administrator account and default store created successfully! Please log in.');
@@ -179,6 +184,14 @@ const Setup = () => {
                                 />
                                 {errors.storeName && <div className="error-message">{errors.storeName}</div>}
                             </div>
+
+                            {/* Hidden status field - always active for default store */}
+                            <input
+                                type="hidden"
+                                id="storeStatus"
+                                name="storeStatus"
+                                value="ACTIVE"
+                            />
                         </div>
 
                         {errors.general && <div className="general-error">{errors.general}</div>}

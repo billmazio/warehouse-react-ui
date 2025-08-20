@@ -12,8 +12,38 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./UserManagement.css";
 import { userErrorToGreek } from "../../utils/userErrors";
+import { storeErrorToGreek } from "../../utils/storeErrors";
 
 const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/;
+
+// Define UserStatus for better code consistency
+const UserStatus = {
+    ACTIVE: "ACTIVE",
+    INACTIVE: "INACTIVE",
+
+    // Get display text for status
+    toGreekText: (status) => {
+        switch (status) {
+            case "ACTIVE": return "Ενεργός";
+            case "INACTIVE": return "Ανενεργός";
+            default: return "Άγνωστη Κατάσταση";
+        }
+    },
+
+    // Get class name for styling
+    getClassName: (status) => {
+        switch (status) {
+            case "ACTIVE": return "status-active";
+            case "INACTIVE": return "status-inactive";
+            default: return "";
+        }
+    },
+
+    // Helper function to convert from old enable values
+    fromEnable: (enable) => {
+        return enable === 1 ? "ACTIVE" : "INACTIVE";
+    }
+};
 
 const UserManagement = () => {
     const navigate = useNavigate();
@@ -26,8 +56,8 @@ const UserManagement = () => {
     const [newUser, setNewUser] = useState({
         username: "",
         password: "",
-        role: "LOCAL_ADMIN", // default so it's never empty
-        enable: 1,
+        role: "LOCAL_ADMIN",
+        status: "ACTIVE", // Using status enum instead of enable
         storeId: "",
     });
 
@@ -40,6 +70,7 @@ const UserManagement = () => {
                     fetchStores(),
                 ]);
 
+                console.log("Loaded users:", userData);
                 setUsers(userData);
                 setStores(storeData);
 
@@ -81,27 +112,43 @@ const UserManagement = () => {
     };
 
     const handleToggleUserStatus = async (user) => {
-        const prev = user.enable;            // 0 ή 1
-        const next = prev === 1 ? 0 : 1;     // flip
+        // Get current status, handling both new status enum and legacy enable
+        const currentStatus = user.status || UserStatus.fromEnable(user.enable);
+        const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+        const isActive = newStatus === "ACTIVE";
 
-        // optimistic update
-        setUsers(list => list.map(u => u.id === user.id ? { ...u, enable: next } : u));
+        console.log(`Current status: ${currentStatus}, New status: ${newStatus}`);
+
+        // Optimistic update
+        setUsers(list => list.map(u =>
+            u.id === user.id ? {...u, status: newStatus } : u
+        ));
 
         try {
-            const updated = await apiToggleUserStatus(user.id, next === 1);
+            console.log(`Toggling user ${user.id} status to ${newStatus}`);
 
-            // sync with server truth
-            setUsers(list => list.map(u =>
-                u.id === user.id ? { ...u, enable: updated.enable } : u
-            ));
+            const response = await apiToggleUserStatus(user.id, isActive);
+            console.log("Toggle response:", response);
+
+            // Update with response data if available
+            if (response && response.status) {
+                setUsers(list => list.map(u =>
+                    u.id === user.id ? { ...u, status: response.status } : u
+                ));
+            }
 
             toast.success(
-                `Ο χρήστης "${user.username}" ${updated.enable === 1 ? "ενεργοποιήθηκε" : "απενεργοποιήθηκε"} επιτυχώς.`
+                `Ο χρήστης "${user.username}" ${isActive ? "ενεργοποιήθηκε" : "απενεργοποιήθηκε"} επιτυχώς.`
             );
         } catch (err) {
-            // rollback
-            setUsers(list => list.map(u => u.id === user.id ? { ...u, enable: prev } : u));
-            console.error("toggle error:", err?.response?.status, err?.response?.data);
+            // Rollback on error
+            setUsers(list => list.map(u =>
+                u.id === user.id ? { ...u, status: currentStatus } : u
+            ));
+            console.error("User toggle error:", err);
+            if (err.response) {
+                console.error("Error response:", err.response.data);
+            }
             toast.error(userErrorToGreek(err));
         }
     };
@@ -125,11 +172,18 @@ const UserManagement = () => {
         }
 
         try {
+            console.log("Creating user with data:", {
+                username: newUser.username,
+                role: newUser.role,
+                status: newUser.status,
+                storeId: newUser.storeId
+            });
+
             const createdUser = await createUser({
                 username: newUser.username,
                 password: newUser.password,
                 role: (newUser.role || "LOCAL_ADMIN").toUpperCase(),
-                enable: newUser.enable,
+                status: newUser.status, // Use status enum instead of enable
                 storeId: newUser.storeId,
             });
 
@@ -139,7 +193,7 @@ const UserManagement = () => {
                 username: "",
                 password: "",
                 role: "LOCAL_ADMIN",
-                enable: 1,
+                status: "ACTIVE", // Reset with status enum
                 storeId: "",
             });
 
@@ -148,6 +202,19 @@ const UserManagement = () => {
             console.error("Error creating user:", err);
             toast.error(userErrorToGreek(err));
         }
+    };
+
+    // Helper function to get user status (handles both status enum and legacy enable)
+    const getUserStatus = (user) => {
+        if (user.status) {
+            return user.status;
+        }
+        return user.enable === 1 ? "ACTIVE" : "INACTIVE";
+    };
+
+    // Helper function to check if user is active
+    const isUserActive = (user) => {
+        return getUserStatus(user) === "ACTIVE";
     };
 
     return (
@@ -191,16 +258,14 @@ const UserManagement = () => {
                         <option value="LOCAL_ADMIN">Local Admin</option>
                     </select>
 
-                    <label>
-                        Enable:
-                        <input
-                            type="checkbox"
-                            checked={newUser.enable === 1}
-                            onChange={(e) =>
-                                setNewUser({ ...newUser, enable: e.target.checked ? 1 : 0 })
-                            }
-                        />
-                    </label>
+                    {/* Status selector dropdown instead of enable checkbox */}
+                    <select
+                        value={newUser.status}
+                        onChange={(e) => setNewUser({ ...newUser, status: e.target.value })}
+                    >
+                        <option value="ACTIVE">Ενεργός</option>
+                        <option value="INACTIVE">Ανενεργός</option>
+                    </select>
 
                     <select
                         value={newUser.storeId}
@@ -229,7 +294,7 @@ const UserManagement = () => {
                                     username: "",
                                     password: "",
                                     role: "LOCAL_ADMIN",
-                                    enable: 1,
+                                    status: "ACTIVE", // Reset with status enum
                                     storeId: "",
                                 })
                             }
@@ -256,26 +321,26 @@ const UserManagement = () => {
                         <td>{user.username}</td>
                         <td>{(user.roles || []).map((r) => r.name).join(", ")}</td>
                         <td>
-    <span className={`status-badge ${user.enable === 1 ? "active" : "inactive"}`}>
-      {user.enable === 1 ? "Ενεργός" : "Ανενεργός"}
-    </span>
+                            <span className={`status-badge ${UserStatus.getClassName(getUserStatus(user))}`}>
+                                {UserStatus.toGreekText(getUserStatus(user))}
+                            </span>
                         </td>
                         <td>{user.store?.title || "N/A"}</td>
                         <td>
                             <div className="action-buttons">
                                 <button
-                                    className={`toggle-button ${user.enable === 1 ? "deactivate" : "activate"}`}
+                                    className={`toggle-button ${isUserActive(user) ? "deactivate" : "activate"}`}
                                     onClick={() => handleToggleUserStatus(user)}
                                     disabled={loggedInUserRole !== "SUPER_ADMIN"}
                                     title={
                                         loggedInUserRole !== "SUPER_ADMIN"
                                             ? "Μόνο ο Super Admin μπορεί να αλλάξει την κατάσταση"
-                                            : user.enable === 1
+                                            : isUserActive(user)
                                                 ? "Απενεργοποίηση χρήστη"
                                                 : "Ενεργοποίηση χρήστη"
                                     }
                                 >
-                                    {user.enable === 1 ? (
+                                    {isUserActive(user) ? (
                                         <>
                                             <i className="fa fa-toggle-on" /> Απενεργοποίηση
                                         </>
@@ -306,7 +371,6 @@ const UserManagement = () => {
                             </div>
                         </td>
                     </tr>
-
                 ))}
                 </tbody>
             </table>

@@ -15,22 +15,18 @@ import "react-toastify/dist/ReactToastify.css";
 import "./StoreManagement.css";
 import { storeErrorToGreek } from "../../utils/storeErrors";
 
-// For debugging API calls
 const logStoreData = (store, operation) => {
     console.log(`${operation} Store Data:`, JSON.stringify(store, null, 2));
 };
 
-// Store Status enum to match backend
 const StoreStatus = {
     ACTIVE: "ACTIVE",
     INACTIVE: "INACTIVE",
 
-    // Convert from old enable value to enum value
     fromLegacyEnable: (enable) => {
         return Number(enable) === 1 ? "ACTIVE" : "INACTIVE";
     },
 
-    // Convert from enum status to display text
     toGreekText: (status) => {
         switch (status) {
             case "ACTIVE": return "Ενεργή";
@@ -39,13 +35,11 @@ const StoreStatus = {
         }
     },
 
-    // Check if store is active
     isActive: (status) => {
         return status === "ACTIVE";
     }
 };
 
-// CSS for status colors
 const statusStyles = `
 .status-active {
     background-color: #4caf50;
@@ -86,9 +80,7 @@ const StoreManagement = () => {
     const [materials, setMaterials] = useState([]);
     const navigate = useNavigate();
 
-    // Get CSS class name for status styling
     const getStatusClassName = (status) => {
-        // If we have a defined status, use it
         if (status) {
             switch (status) {
                 case "ACTIVE": return "status-active";
@@ -169,16 +161,13 @@ const StoreManagement = () => {
     };
 
     const handleToggleStoreStatus = async (store) => {
-        // Get current status
         const currentStatus = store.status;
         const newStatus = currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE";
 
-        // Convert to boolean for API function
         const isActive = newStatus === "ACTIVE";
 
         console.log(`Current status: ${currentStatus}, New status: ${newStatus}`);
 
-        // Optimistic update
         setStores(list => list.map(s =>
             s.id === store.id ? { ...s, status: newStatus } : s
         ));
@@ -186,11 +175,9 @@ const StoreManagement = () => {
         try {
             console.log(`Toggling store ${store.id} status to ${newStatus}`);
 
-            // Call the API function to toggle status
             const response = await apiToggleStoreStatus(store.id, isActive);
             console.log("Toggle response:", response);
 
-            // Update store with response data if available
             if (response && response.status) {
                 setStores(list => list.map(s =>
                     s.id === store.id ? { ...s, status: response.status } : s
@@ -201,7 +188,6 @@ const StoreManagement = () => {
                 `Η αποθήκη "${store.title}" ${isActive ? "ενεργοποιήθηκε" : "απενεργοποιήθηκε"} επιτυχώς.`
             );
         } catch (err) {
-            // Rollback on error
             setStores(list => list.map(s =>
                 s.id === store.id ? { ...s, status: currentStatus } : s
             ));
@@ -220,7 +206,6 @@ const StoreManagement = () => {
         }
 
         try {
-            // Log data for debugging
             logStoreData(newStore, "Create");
 
             const createdStore = await createStore(newStore);
@@ -257,14 +242,11 @@ const StoreManagement = () => {
             setDistributionData({ storeId: "", materialId: "", receiverStoreId: "", quantity: 0 });
         } catch (err) {
             console.error("distribute material error:", err);
-            // δεν είναι καθαρά "store" λάθη, αλλά δείξε ένα γενικό μήνυμα
             toast.error("Αποτυχία μεταφοράς υλικού.");
         }
     };
 
-    // Helper function to check if a store is active
     const isStoreActive = (store) => {
-        // Handle both new status enum and legacy enable property
         if (store.status) {
             return store.status === "ACTIVE";
         }
@@ -297,7 +279,6 @@ const StoreManagement = () => {
                         onChange={(e) => setNewStore({ ...newStore, address: e.target.value })}
                     />
                     <label>
-                        Κατάσταση:
                         <select
                             value={newStore.status}
                             onChange={(e) => setNewStore({ ...newStore, status: e.target.value })}
@@ -452,7 +433,6 @@ const StoreManagement = () => {
                         onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
                     />
                     <div className="status-select-container">
-                        <label>Κατάσταση:</label>
                         <select
                             value={editFormData.status}
                             onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
