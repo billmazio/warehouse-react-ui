@@ -149,6 +149,16 @@ const StoreManagement = () => {
     const handleUpdateStore = async () => {
         if (!editingStore) return;
 
+        // Check if the new title already exists (excluding the current store being edited)
+        const existingStore = stores.find(store =>
+            store.id !== editingStore.id &&
+            store.title.toLowerCase() === editFormData.title.trim().toLowerCase()
+        );
+
+        if (existingStore) {
+            toast.error(`Αποθήκη με το όνομα "${editFormData.title}" υπάρχει ήδη. Παρακαλώ επιλέξτε διαφορετικό όνομα.`);
+            return;
+        }
         try {
             // Log data for debugging
             logStoreData(editFormData, "Update");
@@ -205,6 +215,15 @@ const StoreManagement = () => {
     const handleCreate = async () => {
         if (!newStore.title.trim() || !newStore.address.trim()) {
             toast.warning("Ο Τίτλος και η Διεύθυνση είναι απαραίτητα.");
+            return;
+        }
+
+        const existingStore = stores.find(store =>
+            store.title.toLowerCase() === newStore.title.trim().toLowerCase()
+        );
+
+        if (existingStore) {
+            toast.error(`Αποθήκη με το όνομα "${newStore.title}" υπάρχει ήδη. Παρακαλώ επιλέξτε διαφορετικό όνομα.`);
             return;
         }
 
