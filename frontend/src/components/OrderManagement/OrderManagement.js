@@ -25,22 +25,22 @@ const logOrderData = (order, operation) => {
 const statusStyles = `
 .status-pending {
     background-color: #ff9800 !important;
-    color: white !important;
+    color: black !important;
     font-weight: bold !important;
 }
 .status-processing {
     background-color: #2196f3 !important;
-    color: white !important;
+    color: black !important;
     font-weight: bold !important;
 }
 .status-completed {
     background-color: #4caf50 !important;
-    color: white !important;
+    color: black !important;
     font-weight: bold !important;
 }
 .status-cancelled {
     background-color: #f44336 !important;
-    color: white !important;
+    color: black !important;
     font-weight: bold !important;
 }
 `;
