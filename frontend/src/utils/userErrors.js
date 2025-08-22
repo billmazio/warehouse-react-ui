@@ -1,4 +1,3 @@
-// userErrors.js
 const TEXTS = {
     CANNOT_DISABLE_OWN_ACCOUNT: "Δεν μπορείτε να απενεργοποιήσετε τον δικό σας λογαριασμό.",
     CANNOT_MODIFY_SUPER_ADMIN: "Δεν μπορείτε να τροποποιήσετε χρήστη SUPER_ADMIN.",

@@ -1,15 +1,14 @@
 // src/utils/materialErrors.js
-
 const TEXTS = {
     MATERIAL_ALREADY_EXISTS: (ctx = {}) =>
         (ctx.text && ctx.sizeName)
             ? `Το προϊόν '${ctx.text}' με μέγεθος '${ctx.sizeName}' υπάρχει ήδη σε αυτή την αποθήκη.`
             : "Το προϊόν με την ίδια περιγραφή και μέγεθος υπάρχει ήδη σε αυτή την αποθήκη.",
     MATERIAL_NOT_FOUND: "Το προϊόν δεν βρέθηκε.",
+    MATERIAL_HAS_ORDERS: "Το προϊόν έχει συνδεδεμένες παραγγελίες και δεν μπορεί να διαγραφεί.",
     SIZE_NOT_FOUND: "Το μέγεθος δεν βρέθηκε.",
     STORE_NOT_FOUND: "Η αποθήκη δεν βρέθηκε.",
     ACCESS_DENIED: "Δεν έχετε δικαίωμα για αυτή την ενέργεια.",
-    MATERIAL_HAS_ORDERS: "Το προϊόν έχει συνδεδεμένες παραγγελίες και δεν μπορεί να διαγραφεί.",
     BAD_REQUEST: "Μη έγκυρα δεδομένα.",
     CONFLICT_GENERIC: "Συνδεδεμένα δεδομένα.",
     LOAD_FAILED: "Αποτυχία φόρτωσης δεδομένων.",
