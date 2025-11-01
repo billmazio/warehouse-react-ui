@@ -6,15 +6,44 @@ import './Login.css';
 const Login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');                // generic errors (401, network)
-    const [fieldErrors, setFieldErrors] = useState({});    // { username: '...', password: '...' }
+    const [error, setError] = useState('');
+    const [fieldErrors, setFieldErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+
+    // Frontend validation
+    const validateForm = () => {
+        const errors = {};
+
+        // Check username
+        if (!username.trim()) {
+            errors.username = 'Το πεδίο είναι υποχρεωτικό';
+        } else if (username.trim().length < 3 || username.trim().length > 50) {
+            errors.username = 'Το όνομα χρήστη πρέπει να είναι από 3 έως 50 χαρακτήρες.';
+        }
+
+        // Check password
+        if (!password) {
+            errors.password = 'Το πεδίο είναι υποχρεωτικό';
+        } else if (password.length < 6) {
+            errors.password = 'Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες.';
+        }
+
+        return errors;
+    };
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
         setFieldErrors({});
+
+        // Frontend validation first
+        const errors = validateForm();
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -22,7 +51,6 @@ const Login = () => {
                 username: username.trim(),
                 password,
             });
-
             localStorage.setItem('token', res.data.token);
             navigate('/dashboard');
         } catch (err) {
@@ -30,13 +58,10 @@ const Login = () => {
             const body = err.response?.data;
 
             if (status === 400 && body?.errors) {
-                // Bean validation errors from backend
                 setFieldErrors(body.errors);
             } else if (status === 401) {
-                // Bad credentials
                 setError('Invalid username or password');
             } else if (!status) {
-                // Network / CORS
                 setError('Cannot reach server. Check connection/CORS.');
             } else {
                 setError(body?.message || 'Something went wrong. Please try again.');
@@ -61,7 +86,9 @@ const Login = () => {
                             required
                         />
                         {fieldErrors.username && (
-                            <p className="error-message" role="alert">{fieldErrors.username}</p>
+                            <p className="error-message" role="alert" data-field="username">
+                                {fieldErrors.username}
+                            </p>
                         )}
                     </div>
 
@@ -76,7 +103,9 @@ const Login = () => {
                             required
                         />
                         {fieldErrors.password && (
-                            <p className="error-message" role="alert">{fieldErrors.password}</p>
+                            <p className="error-message" role="alert" data-field="password">
+                                {fieldErrors.password}
+                            </p>
                         )}
                     </div>
 
