@@ -144,10 +144,13 @@ const Dashboard = () => {
             </aside>
 
             <main className="main-content">
-                <header className="header">
-                    <button className="logout-btn" onClick={handleLogout}>
-                        Αποσύνδεση
-                    </button>
+                <header className="header"><button
+                    className="logout-btn"
+                    onClick={handleLogout}
+                    data-test="logout-button"
+                >
+                    Αποσύνδεση
+                </button>
                 </header>
 
                 {error && <p className="error-message">{error}</p>}

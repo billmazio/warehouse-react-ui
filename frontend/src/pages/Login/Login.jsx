@@ -72,8 +72,8 @@ const Login = () => {
     };
 
     return (
-        <div className="login-container">
-            <div className="login-form">
+        <div className="login-container" data-test="login-container">
+            <div className="login-form" data-test="login-form">
                 <form onSubmit={handleLogin} noValidate>
                     <div className="form-group">
                         <input
@@ -84,9 +84,15 @@ const Login = () => {
                             autoComplete="username"
                             aria-invalid={!!fieldErrors.username}
                             required
+                            data-test="username-input"
                         />
                         {fieldErrors.username && (
-                            <p className="error-message" role="alert" data-field="username">
+                            <p
+                                className="error-message"
+                                role="alert"
+                                data-field="username"
+                                data-test="username-error"
+                            >
                                 {fieldErrors.username}
                             </p>
                         )}
@@ -101,20 +107,39 @@ const Login = () => {
                             autoComplete="current-password"
                             aria-invalid={!!fieldErrors.password}
                             required
+                            data-test="password-input"
                         />
                         {fieldErrors.password && (
-                            <p className="error-message" role="alert" data-field="password">
+                            <p
+                                className="error-message"
+                                role="alert"
+                                data-field="password"
+                                data-test="password-error"
+                            >
                                 {fieldErrors.password}
                             </p>
                         )}
                     </div>
 
-                    <button type="submit" className="btn" disabled={loading}>
+                    <button
+                        type="submit"
+                        className="btn"
+                        disabled={loading}
+                        data-test="signInButton"
+                    >
                         {loading ? 'Signing in…' : 'Sign In'}
                     </button>
                 </form>
 
-                {error && <p className="error-message" role="alert">{error}</p>}
+                {error && (
+                    <p
+                        className="error-message"
+                        role="alert"
+                        data-test="login-error"
+                    >
+                        {error}
+                    </p>
+                )}
             </div>
         </div>
     );
