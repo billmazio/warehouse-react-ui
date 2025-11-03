@@ -246,14 +246,19 @@ const CentralMaterialsList = () => {
     };
 
     return (
-        <div className="materials-management-container">
+        <div className="materials-management-container" data-test="materials-page">
             <ToastContainer />
-            <button onClick={() => navigate("/dashboard")} className="back-button">
+
+            <button
+                onClick={() => navigate("/dashboard")}
+                className="back-button"
+                data-test="back-to-dashboard"
+            >
                 Πίσω στην Κεντρική Διαχείριση
             </button>
 
-            <h2>Διαχείριση Ενδυμάτων</h2>
-            {error && <p className="error-message">{error}</p>}
+            <h2 data-test="materials-title">Διαχείριση Ενδυμάτων</h2>
+            {error && <p className="error-message" data-test="materials-error">{error}</p>}
 
             <div className="materials-create-form">
                 <input
@@ -261,8 +266,13 @@ const CentralMaterialsList = () => {
                     placeholder="Φίλτρο ανά προϊόν"
                     value={filterText}
                     onChange={(e) => setFilterText(e.target.value)}
+                    data-test="filter-product"
                 />
-                <select value={filterSize} onChange={(e) => setFilterSize(e.target.value)}>
+                <select
+                    value={filterSize}
+                    onChange={(e) => setFilterSize(e.target.value)}
+                    data-test="filter-size"
+                >
                     <option value="">Φίλτρο ανά μέγεθος</option>
                     {sizes.map((size) => (
                         <option key={size.id} value={size.id}>
@@ -274,12 +284,13 @@ const CentralMaterialsList = () => {
                     className="create-button"
                     style={{ backgroundColor: "#28a745", marginLeft: "10px" }}
                     onClick={() => setShowAddModal(true)}
+                    data-test="add-material-button"
                 >
                     Προσθήκη Νέου Ενδύματος
                 </button>
             </div>
 
-            <table className="materials-table">
+            <table className="materials-table" data-test="materials-table">
                 <thead>
                 <tr>
                     <th>ΠΡΟΪΟΝ</th>
@@ -292,7 +303,7 @@ const CentralMaterialsList = () => {
                 <tbody>
                 {materials.length > 0 ? (
                     materials.map((material) => (
-                        <tr key={material.id}>
+                        <tr key={material.id} data-test="material-row">
                             <td>{material.text}</td>
                             <td>{material.sizeName}</td>
                             <td>{material.quantity}</td>
@@ -303,6 +314,7 @@ const CentralMaterialsList = () => {
                                         className="edit-button"
                                         title="Επεξεργασία"
                                         onClick={() => handleEditClick(material)}
+                                        data-test="edit-button"
                                     >
                                         <i className="fa fa-edit"></i> Επεξεργασία
                                     </button>
@@ -315,6 +327,7 @@ const CentralMaterialsList = () => {
                                                 : "Διαγραφή"
                                         }
                                         onClick={() => openConfirmationDialog(material)}
+                                        data-test="delete-button"
                                     >
                                         <i className="fa fa-trash"></i> Διαγραφή
                                     </button>
@@ -324,42 +337,46 @@ const CentralMaterialsList = () => {
                     ))
                 ) : (
                     <tr>
-                        <td colSpan="5">Δεν υπάρχουν διαθέσιμα προϊόντα.</td>
+                        <td colSpan="5" data-test="no-materials-message">Δεν υπάρχουν διαθέσιμα προϊόντα.</td>
                     </tr>
                 )}
                 </tbody>
             </table>
 
-            <div className="pagination">
+            <div className="pagination" data-test="pagination">
                 <button
                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
                     disabled={currentPage === 0}
                     className="pagination-button"
+                    data-test="pagination-prev"
                 >
                     Προηγούμενη
                 </button>
-                <span>Σελίδα {currentPage + 1} από {totalPages}</span>
+                <span data-test="pagination-info">Σελίδα {currentPage + 1} από {totalPages}</span>
                 <button
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))}
                     disabled={currentPage >= totalPages - 1}
                     className="pagination-button"
+                    data-test="pagination-next"
                 >
                     Επόμενη
                 </button>
             </div>
 
             {editingMaterial && (
-                <div className="edit-modal-materials">
+                <div className="edit-modal-materials" data-test="edit-modal">
                     <h3>Επεξεργασία Προϊόντος</h3>
                     <input
                         type="text"
                         placeholder="Προϊόν"
                         value={editFormData.text}
                         onChange={(e) => setEditFormData({ ...editFormData, text: e.target.value })}
+                        data-test="edit-text"
                     />
                     <select
                         value={editFormData.sizeId}
                         onChange={(e) => setEditFormData({ ...editFormData, sizeId: e.target.value })}
+                        data-test="edit-size"
                     >
                         <option value="">Επιλέξτε μέγεθος</option>
                         {sizes.map((size) => (
@@ -373,12 +390,13 @@ const CentralMaterialsList = () => {
                         placeholder="Ποσότητα"
                         value={editFormData.quantity}
                         onChange={(e) => setEditFormData({ ...editFormData, quantity: e.target.value })}
+                        data-test="edit-quantity"
                     />
                     <div className="button-group">
-                        <button className="materials-cancel-button" onClick={() => setEditingMaterial(null)}>
+                        <button className="materials-cancel-button" onClick={() => setEditingMaterial(null)} data-test="edit-cancel">
                             Ακύρωση
                         </button>
-                        <button className="materials-confirm-button" onClick={handleSaveEdit}>
+                        <button className="materials-confirm-button" onClick={handleSaveEdit} data-test="edit-confirm">
                             Αποθήκευση
                         </button>
                     </div>
@@ -386,17 +404,17 @@ const CentralMaterialsList = () => {
             )}
 
             {showConfirmation && (
-                <div className="confirmation-dialog">
+                <div className="confirmation-dialog" data-test="confirmation-dialog">
                     <div className="confirmation-content">
                         <p>
                             Είστε σίγουροι ότι θέλετε να διαγράψετε το προϊόν{" "}
                             <strong>{materialToDelete?.text}</strong>;
                         </p>
                         <div className="materials-button-group">
-                            <button className="materials-cancel-button" onClick={closeConfirmationDialog}>
+                            <button className="materials-cancel-button" onClick={closeConfirmationDialog} data-test="confirm-cancel">
                                 Ακύρωση
                             </button>
-                            <button className="materials-confirm-button" onClick={confirmDelete}>
+                            <button className="materials-confirm-button" onClick={confirmDelete} data-test="confirm-delete">
                                 Επιβεβαίωση
                             </button>
                         </div>

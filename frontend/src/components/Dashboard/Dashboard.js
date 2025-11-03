@@ -159,6 +159,7 @@ const Dashboard = () => {
                     <section className="dashboard-cards">
                         <div
                             className="card"
+                            data-test="card-users"
                             onClick={() => handleNavigation("/dashboard/manage-users")}
                         >
                             <i className="fa fa-users card-icon"></i>
@@ -167,6 +168,7 @@ const Dashboard = () => {
                         </div>
                         <div
                             className="card"
+                            data-test="card-materials"
                             onClick={() => handleNavigation("/dashboard/manage-materials")}
                         >
                             <i className="fa fa-tshirt card-icon"></i>
@@ -175,6 +177,7 @@ const Dashboard = () => {
                         </div>
                         <div
                             className="card"
+                            data-test="card-orders"
                             onClick={() => handleNavigation("/dashboard/manage-orders")}
                         >
                             <i className="fa fa-shopping-cart card-icon"></i>
@@ -183,6 +186,7 @@ const Dashboard = () => {
                         </div>
                         <div
                             className="card"
+                            data-test="card-stores"
                             onClick={() => handleNavigation("/dashboard/manage-stores")}
                         >
                             <i className="fa fa-warehouse card-icon"></i>
