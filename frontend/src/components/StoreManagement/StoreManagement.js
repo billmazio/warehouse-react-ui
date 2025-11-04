@@ -291,7 +291,7 @@ const StoreManagement = () => {
                 </div>
             )}
 
-            <table className="stores-table">
+            <table className="stores-table" data-test="stores-table">
                 <thead>
                 <tr>
                     <th>ΤΙΤΛΟΣ</th>
@@ -302,7 +302,7 @@ const StoreManagement = () => {
                 </thead>
                 <tbody>
                 {stores.map((store) => (
-                    <tr key={store.id}>
+                    <tr key={store.id} data-test="store-row">
                         <td>{store.title}</td>
                         <td>{store.address}</td>
                         <td className={getStatusClassName(store.status || (store.enable === 1 ? "ACTIVE" : "INACTIVE"))}>
@@ -362,6 +362,7 @@ const StoreManagement = () => {
                                         if (loggedInUserRole !== "SUPER_ADMIN" || store.isSystemEntity) return;
                                         openConfirmationDialog(store);
                                     }}
+                                    data-test="delete-button"
                                 >
                                     <i className="fa fa-trash" /> Διαγραφή
                                 </button>
@@ -487,17 +488,17 @@ const StoreManagement = () => {
 
             {/* Confirmation Dialog */}
             {showConfirmation && (
-                <div className="confirmation-dialog">
+                <div className="confirmation-dialog" data-test="confirmation-dialog">
                     <div className="confirmation-content">
                         <p>
                             Είστε σίγουροι ότι θέλετε να διαγράψετε την αποθήκη{" "}
                             <strong>{storeToDelete?.title}</strong>;
                         </p>
                         <div className="store-button-group">
-                            <button className="store-cancel-button" onClick={closeConfirmationDialog}>
+                            <button className="store-cancel-button" onClick={closeConfirmationDialog} data-test="confirm-cancel">
                                 Ακύρωση
                             </button>
-                            <button className="store-confirm-button" onClick={confirmDelete}>
+                            <button className="store-confirm-button" onClick={confirmDelete} data-test="confirm-delete">
                                 Επιβεβαίωση
                             </button>
                         </div>

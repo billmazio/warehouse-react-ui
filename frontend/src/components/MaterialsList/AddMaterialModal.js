@@ -110,7 +110,7 @@ const AddMaterialModal = ({ show, onClose, userRole, userStoreId, onMaterialAdde
     if (!show) return null;
 
     return (
-        <div className="edit-modal-store" data-test="add-store-modal">
+        <div className="edit-modal-store" data-test="add-material-modal">
             <h3 data-test="add-material-title">Προσθήκη Νέου Ενδύματος</h3>
 
             {error && <p className="error-message" data-test="add-material-error">{error}</p>}

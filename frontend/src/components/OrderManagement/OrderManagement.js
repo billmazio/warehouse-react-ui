@@ -216,7 +216,7 @@ const OrderManagement = () => {
         const warningMessage = getWarningMessage(order);
 
         return (
-            <tr key={order.id} className={hasWarning ? "order-row-warning" : ""}>
+            <tr key={order.id} className={hasWarning ? "order-row-warning" : ""} data-test="order-row">
                 <td>{order.quantity}</td>
                 <td>{order.dateOfOrder}</td>
                 <td>{order.stock}</td>
@@ -266,6 +266,7 @@ const OrderManagement = () => {
                         </button>
                         <button
                             className="order-delete-button"
+                            data-test="delete-button"
                             title="Διαγραφή"
                             onClick={() => openConfirmationDialog(order)}
                         >
@@ -509,12 +510,12 @@ const OrderManagement = () => {
         <div className="order-management-container">
             <style>{statusStyles}</style>
             <ToastContainer />
-            <button onClick={() => navigate("/dashboard")} className="back-button">
+            <button onClick={() => navigate("/dashboard")} className="back-button" data-test="back-to-dashboard" >
                 Πίσω στην Κεντρική Διαχείριση
             </button>
 
             <h2>{editingOrder ? "Επεξεργασία" : "Δημιουργία"} Παραγγελίας</h2>
-            <div className="order-create-form">
+            <div className="order-create-form" data-test="order-form">
                 <input
                     type="number"
                     placeholder="Ποσότητα"
@@ -526,12 +527,14 @@ const OrderManagement = () => {
                             quantity: e.target.value === "" ? 0 : Math.max(1, parseInt(e.target.value, 10)),
                         })
                     }
+                    data-test="order-quantity"
                 />
                 <input
                     type="date"
                     placeholder="Ημερομηνία Παραγγελίας"
                     value={newOrder.dateOfOrder}
                     onChange={(e) => setNewOrder({ ...newOrder, dateOfOrder: e.target.value })}
+                    data-test="order-date"
                 />
 
                 <select
@@ -542,6 +545,7 @@ const OrderManagement = () => {
                         material: { text: "" }, // Clear material when store changes
                         size: { name: "" } // Clear size when store changes
                     })}
+                    data-test="order-store"
                 >
                     <option value="" disabled>
                         Επιλογή Αποθήκης
@@ -565,6 +569,7 @@ const OrderManagement = () => {
                         });
                     }}
                     disabled={!newOrder.store.title}
+                    data-test="order-material"
                 >
                     <option value="" disabled>
                         Επιλογή Υλικού
@@ -583,6 +588,7 @@ const OrderManagement = () => {
                         size: { name: e.target.value }
                     })}
                     disabled={!newOrder.material.text}
+                    data-test="order-size"
                 >
                     <option value="" disabled>
                         Επιλογή Μεγέθους
@@ -600,6 +606,7 @@ const OrderManagement = () => {
                         ...newOrder,
                         user: { username: e.target.value }
                     })}
+                    data-test="order-user"
                 >
                     <option value="" disabled>
                         Επιλογή Χρήστη
@@ -614,6 +621,7 @@ const OrderManagement = () => {
                 <select
                     value={newOrder.orderStatus}
                     onChange={(e) => setNewOrder({ ...newOrder, orderStatus: e.target.value })}
+                    data-test="order-status"
                 >
                     <option value="PENDING">ΕΚΚΡΕΜΕΙ</option>
                     <option value="PROCESSING">ΣΕ ΕΠΕΞΕΡΓΑΣΙΑ</option>
@@ -622,16 +630,16 @@ const OrderManagement = () => {
                 </select>
 
                 {!editingOrder ? (
-                    <button className="create-button" onClick={handleCreate}>
+                    <button className="create-button" onClick={handleCreate} data-test="create-order-button">
                         Δημιουργία Παραγγελίας
                     </button>
                 ) : (
-                    <button className="edit-button" onClick={handleEdit}>
+                    <button className="edit-button" onClick={handleEdit} data-test="update-order-button">
                         Ενημέρωση Παραγγελίας
                     </button>
                 )}
 
-                <button className="cancel-button" onClick={resetOrderForm}>
+                <button className="cancel-button" onClick={resetOrderForm} data-test="cancel-order-button">
                     Ακύρωση
                 </button>
             </div>
@@ -639,7 +647,7 @@ const OrderManagement = () => {
             {renderWarningSummary()}
 
             <h2>Λίστα Παραγγελιών</h2>
-            <table className="order-table">
+            <table className="order-table" data-test="orders-table">
                 <thead>
                 <tr>
                     <th>ΠΟΣΟΤΗΤΑ</th>
@@ -660,17 +668,17 @@ const OrderManagement = () => {
 
             {/* Confirmation modal */}
             {isConfirmationOpen && (
-                <div className="confirmation-dialog">
+                <div className="confirmation-dialog" data-test="confirmation-dialog">
                     <div className="confirmation-content">
                         <p>
                             Είστε σίγουροι ότι θέλετε να διαγράψετε την παραγγελία{" "}
                             <strong>#{orderToDelete?.id}</strong>;
                         </p>
                         <div className="order-button-group">
-                            <button className="order-cancel-button" onClick={closeConfirmationDialog}>
+                            <button className="order-cancel-button" onClick={closeConfirmationDialog} data-test="confirm-cancel">
                                 Ακύρωση
                             </button>
-                            <button className="order-confirm-button" onClick={confirmDelete}>
+                            <button className="order-confirm-button" onClick={confirmDelete} data-test="confirm-delete">
                                 Επιβεβαίωση
                             </button>
                         </div>
