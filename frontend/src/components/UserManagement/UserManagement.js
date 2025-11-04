@@ -363,7 +363,8 @@ const UserManagement = () => {
                                 </button>
 
                                 <button
-                                    className="delete-button"
+                                    className="user-delete-button"
+                                    data-test="delete-button"
                                     disabled={loggedInUserRole !== "SUPER_ADMIN" || user.isSystemEntity}
                                     title={
                                         user.isSystemEntity

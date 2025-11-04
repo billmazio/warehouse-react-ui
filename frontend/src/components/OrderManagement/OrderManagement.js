@@ -258,6 +258,7 @@ const OrderManagement = () => {
                     <div className="order-action-buttons">
                         <button
                             className="order-edit-button"
+                            data-test="edit-button"
                             title={hasWarning ? "Προσοχή: Αυτή η παραγγελία έχει ξεπερασμένες πληροφορίες" : "Επεξεργασία"}
                             onClick={() => handleEditButtonClick(order.id)}
                         >

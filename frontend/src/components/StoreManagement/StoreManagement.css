@@ -110,7 +110,7 @@
 }
 
 .view-button,
-.edit-button {
+.edit-store-button {
     background-color: #007bff;
     color: white;
     padding: 10px 20px;
@@ -511,7 +511,7 @@
         gap: 4px;
     }
 
-    .toggle-button, .edit-button, .view-button, .delete-button {
+    .toggle-button, .edit-store-button, .view-button, .delete-button {
         font-size: 11px;
         padding: 5px 10px;
     }

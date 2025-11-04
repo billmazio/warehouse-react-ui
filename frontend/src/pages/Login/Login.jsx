@@ -125,7 +125,7 @@ const Login = () => {
                         type="submit"
                         className="btn"
                         disabled={loading}
-                        data-test="signInButton"
+                        data-test="sign-in-button"
                     >
                         {loading ? 'Signing in…' : 'Sign In'}
                     </button>

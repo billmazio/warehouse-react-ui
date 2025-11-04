@@ -313,7 +313,8 @@ const StoreManagement = () => {
                             <div className="action-buttons">
                                 {/* Edit (only SUPER_ADMIN) */}
                                 <button
-                                    className="edit-button"
+                                    className="edit-store-button"
+                                    data-test="edit-button"
                                     disabled={loggedInUserRole !== "SUPER_ADMIN"}
                                     title={
                                         loggedInUserRole !== "SUPER_ADMIN"

@@ -110,13 +110,13 @@ const AddMaterialModal = ({ show, onClose, userRole, userStoreId, onMaterialAdde
     if (!show) return null;
 
     return (
-        <div className="edit-modal-store">
-            <h3>Προσθήκη Νέου Ενδύματος</h3>
+        <div className="edit-modal-store" data-test="add-store-modal">
+            <h3 data-test="add-material-title">Προσθήκη Νέου Ενδύματος</h3>
 
-            {error && <p className="error-message">{error}</p>}
+            {error && <p className="error-message" data-test="add-material-error">{error}</p>}
 
             {loading ? (
-                <p style={{ textAlign: "center" }}>Φόρτωση...</p>
+                <p style={{ textAlign: "center" }} data-test="add-material-loading">Φόρτωση...</p>
             ) : (
                 <>
                     <input
@@ -127,6 +127,7 @@ const AddMaterialModal = ({ show, onClose, userRole, userStoreId, onMaterialAdde
                         placeholder="Περιγραφή προϊόντος (π.χ. Μπλούζα Polo)"
                         required
                         autoFocus
+                        data-test="add-material-text"
                     />
 
                     <select
@@ -134,6 +135,7 @@ const AddMaterialModal = ({ show, onClose, userRole, userStoreId, onMaterialAdde
                         value={formData.sizeId}
                         onChange={handleChange}
                         required
+                        data-test="add-material-size"
                     >
                         <option value="">Επιλέξτε μέγεθος</option>
                         {sizes.map((size) => (
@@ -151,6 +153,7 @@ const AddMaterialModal = ({ show, onClose, userRole, userStoreId, onMaterialAdde
                         placeholder="Ποσότητα"
                         min="1"
                         required
+                        data-test="add-material-quantity"
                     />
 
                     {userRole === "SUPER_ADMIN" ? (
@@ -159,6 +162,7 @@ const AddMaterialModal = ({ show, onClose, userRole, userStoreId, onMaterialAdde
                             value={formData.storeId}
                             onChange={handleChange}
                             required
+                            data-test="add-material-store"
                         >
                             <option value="">Επιλέξτε αποθήκη</option>
                             {stores.map((store) => (
@@ -168,7 +172,7 @@ const AddMaterialModal = ({ show, onClose, userRole, userStoreId, onMaterialAdde
                             ))}
                         </select>
                     ) : (
-                        <div style={{ padding: "10px", backgroundColor: "#e9e9e9", borderRadius: "4px" }}>
+                        <div style={{ padding: "10px", backgroundColor: "#e9e9e9", borderRadius: "4px" }}  data-test="add-material-store-readonly">
                             <strong>Αποθήκη:</strong>{" "}
                             {stores.find((s) => s.id === userStoreId)?.title || "Η αποθήκη σας"}
                             <input type="hidden" name="storeId" value={userStoreId || ""} />
@@ -176,10 +180,11 @@ const AddMaterialModal = ({ show, onClose, userRole, userStoreId, onMaterialAdde
                     )}
 
                     <div className="button-group">
-                        <button type="button" className="cancel-button" onClick={onClose}>
+                        <button type="button" className="cancel-button" onClick={onClose} data-test="add-material-cancel">
+
                             Ακύρωση
                         </button>
-                        <button type="button" className="save-button" onClick={handleSubmit}>
+                        <button type="button" className="save-button" onClick={handleSubmit} data-test="add-material-submit">
                             Προσθήκη
                         </button>
                     </div>
