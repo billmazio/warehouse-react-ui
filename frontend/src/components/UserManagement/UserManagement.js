@@ -241,7 +241,7 @@ const UserManagement = () => {
             {error && <p className="error-message">{error}</p>}
 
             {loggedInUserRole === "SUPER_ADMIN" && (
-                <div className="user-create-form">
+                <div className="user-create-form" data-test="user-create-form">
                     <input
                         type="text"
                         placeholder="Εισάγετε όνομα χρήστη"
@@ -250,6 +250,7 @@ const UserManagement = () => {
                             setNewUser({ ...newUser, username: e.target.value })
                         }
                         required
+                        data-test="user-create-username"
                     />
 
                     <input
@@ -261,11 +262,13 @@ const UserManagement = () => {
                             setNewUser({ ...newUser, password: e.target.value })
                         }
                         required
+                        data-test="user-create-password"
                     />
 
                     <select
                         value={newUser.role}
                         onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                        data-test="user-create-role"
                     >
                         <option value="SUPER_ADMIN">Super Admin</option>
                         <option value="LOCAL_ADMIN">Local Admin</option>
@@ -275,6 +278,7 @@ const UserManagement = () => {
                     <select
                         value={newUser.status}
                         onChange={(e) => setNewUser({ ...newUser, status: e.target.value })}
+                        data-test="user-create-status"
                     >
                         <option value="ACTIVE">Ενεργός</option>
                         <option value="INACTIVE">Ανενεργός</option>
@@ -284,6 +288,7 @@ const UserManagement = () => {
                         value={newUser.storeId}
                         onChange={(e) => setNewUser({ ...newUser, storeId: e.target.value })}
                         required
+                        data-test="user-create-store"
                     >
                         <option value="" disabled>
                             Επιλογή Αποθήκης
@@ -295,7 +300,7 @@ const UserManagement = () => {
                         ))}
                     </select>
 
-                    <button className="create-button" onClick={handleCreate}>
+                    <button className="create-button" onClick={handleCreate} data-test="user-create-submit">
                         Δημιουργία χρήστη
                     </button>
 
@@ -311,6 +316,7 @@ const UserManagement = () => {
                                     storeId: "",
                                 })
                             }
+                            data-test="user-create-cancel"
                         >
                             Ακύρωση
                         </button>
@@ -318,7 +324,7 @@ const UserManagement = () => {
                 </div>
             )}
 
-            <table className="user-table">
+            <table className="user-table" data-test="user-table">
                 <thead>
                 <tr>
                     <th>ΟΝΟΜΑ ΧΡΗΣΤΗ</th>
@@ -330,7 +336,7 @@ const UserManagement = () => {
                 </thead>
                 <tbody>
                 {users.map((user) => (
-                    <tr key={user.id}>
+                    <tr key={user.id} data-test="user-row">
                         <td>{user.username}</td>
                         <td>{(user.roles || []).map((r) => r.name).join(", ")}</td>
                         <td className={UserStatus.getClassName(getUserStatus(user))}>
@@ -364,7 +370,6 @@ const UserManagement = () => {
 
                                 <button
                                     className="user-delete-button"
-                                    data-test="delete-button"
                                     disabled={loggedInUserRole !== "SUPER_ADMIN" || user.isSystemEntity}
                                     title={
                                         user.isSystemEntity
@@ -377,6 +382,7 @@ const UserManagement = () => {
                                         if (loggedInUserRole !== "SUPER_ADMIN" || user.isSystemEntity) return;
                                         openConfirmationDialog(user);
                                     }}
+                                    data-test="delete-button"
                                 >
                                     <i className="fa fa-trash"></i> Διαγραφή
                                 </button>
@@ -388,17 +394,17 @@ const UserManagement = () => {
             </table>
 
             {showConfirmation && (
-                <div className="confirmation-dialog">
+                <div className="confirmation-dialog" data-test="confirmation-dialog">
                     <div className="confirmation-content">
                         <p>
                             Είστε σίγουροι ότι θέλετε να διαγράψετε τον χρήστη{" "}
                             <strong>{userToDelete?.username}</strong>;
                         </p>
                         <div className="user-button-group">
-                            <button className="user-cancel-button" onClick={closeConfirmationDialog}>
+                            <button className="user-cancel-button" onClick={closeConfirmationDialog} data-test="confirm-cancel">
                                 Ακύρωση
                             </button>
-                            <button className="user-confirm-button" onClick={confirmDelete}>
+                            <button className="user-confirm-button" onClick={confirmDelete} data-test="confirm-delete">
                                 Επιβεβαίωση
                             </button>
                         </div>

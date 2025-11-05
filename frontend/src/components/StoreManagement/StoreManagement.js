@@ -252,23 +252,26 @@ const StoreManagement = () => {
                         placeholder="Εισάγετε τίτλο αποθήκης"
                         value={newStore.title}
                         onChange={(e) => setNewStore({ ...newStore, title: e.target.value })}
+                        data-test="store-create-title"
                     />
                     <input
                         type="text"
                         placeholder="Εισάγετε διεύθυνση αποθήκης"
                         value={newStore.address}
                         onChange={(e) => setNewStore({ ...newStore, address: e.target.value })}
+                        data-test="store-create-address"
                     />
                     <label>
                         <select
                             value={newStore.status}
                             onChange={(e) => setNewStore({ ...newStore, status: e.target.value })}
+                            data-test="store-create-status"
                         >
                             <option value="ACTIVE">Ενεργή</option>
                             <option value="INACTIVE">Ανενεργή</option>
                         </select>
                     </label>
-                    <button className="create-button" onClick={handleCreate}>
+                    <button className="create-button" onClick={handleCreate} data-test="create-store">
                         Δημιουργία Αποθήκης
                     </button>
                     <div>
@@ -281,11 +284,12 @@ const StoreManagement = () => {
                                     status: "ACTIVE",
                                 })
                             }
+                            data-test="store-create-cancel"
                         >
                             Ακύρωση
                         </button>
                     </div>
-                    <button className="distribution-button" onClick={() => setShowDistributionForm(true)}>
+                    <button className="distribution-button" onClick={() => setShowDistributionForm(true)} data-test="store-distribution-button">
                         Μεταφορά Υλικών
                     </button>
                 </div>
@@ -375,34 +379,37 @@ const StoreManagement = () => {
 
             {/* Editing Store Modal */}
             {editingStore && (
-                <div className="edit-modal-store">
+                <div className="edit-modal-store" data-test="edit-store-modal">
                     <h3>Επεξεργασία Αποθήκης</h3>
                     <input
                         type="text"
                         placeholder="Τίτλος"
                         value={editFormData.title}
                         onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                        data-test="edit-store-name"
                     />
                     <input
                         type="text"
                         placeholder="Διεύθυνση"
                         value={editFormData.address}
                         onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
+                        data-test="edit-store-address"
                     />
                     <div className="status-select-container">
                         <select
                             value={editFormData.status}
                             onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+                            data-test="edit-store-status"
                         >
                             <option value="ACTIVE">Ενεργή</option>
                             <option value="INACTIVE">Ανενεργή</option>
                         </select>
                     </div>
                     <div className="edit-actions">
-                        <button className="cancel-button" onClick={() => setEditingStore(null)}>
+                        <button className="cancel-button" onClick={() => setEditingStore(null)} data-test="edit-store-cancel">
                             Ακύρωση
                         </button>
-                        <button className="save-button" onClick={handleUpdateStore}>
+                        <button className="save-button" onClick={handleUpdateStore} data-test="edit-store-submit">
                             Αποθήκευση
                         </button>
                     </div>
