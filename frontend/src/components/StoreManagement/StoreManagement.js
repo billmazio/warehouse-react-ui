@@ -418,7 +418,7 @@ const StoreManagement = () => {
 
             {/* Distribution Form */}
             {showDistributionForm && (
-                <div className="distribution-modal">
+                <div className="distribution-modal" data-test="distribution-modal">
                     <h3>Μεταφορά Υλικού</h3>
 
                     {/* First Dropdown: Select Store */}
@@ -432,6 +432,7 @@ const StoreManagement = () => {
                                 materialId: "", // Reset material selection when store changes
                             });
                         }}
+                        data-test="distribution-source-store"
                     >
                         <option value="">Επιλέξτε Αποθήκη Προέλευσης</option>
                         {stores
@@ -448,6 +449,7 @@ const StoreManagement = () => {
                         value={distributionData.materialId}
                         onChange={(e) => setDistributionData({ ...distributionData, materialId: e.target.value })}
                         disabled={!distributionData.storeId}
+                        data-test="distribution-material"
                     >
                         <option value="">Επιλέξτε Υλικό</option>
                         {materials
@@ -463,6 +465,7 @@ const StoreManagement = () => {
                     <select
                         value={distributionData.receiverStoreId}
                         onChange={(e) => setDistributionData({ ...distributionData, receiverStoreId: e.target.value })}
+                        data-test="distribution-target-store"
                     >
                         <option value="">Επιλέξτε Αποθήκη Προορισμού</option>
                         {stores
@@ -480,13 +483,14 @@ const StoreManagement = () => {
                         placeholder="Ποσότητα"
                         value={distributionData.quantity}
                         onChange={(e) => setDistributionData({ ...distributionData, quantity: e.target.value })}
+                        data-test="distribution-quantity"
                     />
 
                     <div className="button-container">
-                        <button className="cancel-button" onClick={() => setShowDistributionForm(false)}>
+                        <button className="cancel-button" onClick={() => setShowDistributionForm(false)} data-test="distribution-cancel">
                             Ακύρωση
                         </button>
-                        <button className="distribution-button" onClick={handleDistributeMaterial}>
+                        <button className="distribution-button" onClick={handleDistributeMaterial} data-test="distribution-submit">
                             Μεταφορά
                         </button>
                     </div>
