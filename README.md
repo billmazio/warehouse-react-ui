@@ -116,10 +116,7 @@ To set up and run the frontend application:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/warehouse-management-system.git
-
-# Navigate to frontend directory
-cd warehouse-management-system/frontend
+git clone https://github.com/billmazio/clothes-frontend.git
 
 # Install dependencies
 npm install
