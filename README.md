@@ -4,9 +4,8 @@
 1. [Frontend Overview](#frontend-overview)
 2. [Architecture](#architecture)
 3. [Technology Stack](#technology-stack)
-4. [Project Structure](#project-structure)
-5. [Key Features](#key-features)
-6. [Prerequisites](#prerequisites)
+4. [Key Features](#key-features)
+5. [Prerequisites](#prerequisites)
 
 ## Frontend Overview
 
