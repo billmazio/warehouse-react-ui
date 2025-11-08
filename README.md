@@ -112,17 +112,4 @@ To set up and run the frontend application:
 - Modern web browser (Chrome, Firefox, Edge)
 - Backend services running and accessible
 
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/billmazio/clothes-frontend.git
-
-# Install dependencies
-npm install
-
-# Start development server
-npm start
-```
-
 The application will be available at `http://localhost:3000`.
