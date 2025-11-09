@@ -1,81 +1,115 @@
-# Clothing Management System - Frontend
+# Warehouse Management System - Frontend Documentation
 
-## Project Description
+## Table of Contents
+1. [Frontend Overview](#frontend-overview)
+2. [Architecture](#architecture)
+3. [Technology Stack](#technology-stack)
+4. [Key Features](#key-features)
+5. [Prerequisites](#prerequisites)
 
-This is the React frontend for a clothing inventory management system. It provides a responsive user interface for managing clothing inventory across multiple store locations, with different views based on user roles.
+## Frontend Overview
 
-## Technologies Used:
+The frontend of the Warehouse Management System provides a responsive and intuitive user interface for clothing inventory management across multiple store locations. It handles user interactions, data presentation, and communicates with the backend API to perform operations.
 
-- React.js
-- Custom CSS components
-- Axios for API communication
-- JWT Authentication
-- React Router for navigation
-- React Hooks for state management
+### Key Objectives
+- Provide an intuitive user interface for inventory management
+- Implement role-based access control UI components
+- Display real-time inventory status and updates
+- Support multi-store operation views
+- Enable size and quantity management for clothing items
 
-## Key Features:
+### Target Users
+- Store employees with LOCAL_ADMIN privileges
+- System administrators with SUPER_ADMIN privileges
+- Inventory managers and warehouse staff
 
-- Responsive dashboard UI
-- Role-based interface (SUPER_ADMIN vs LOCAL_ADMIN views)
-- Material/clothing inventory management
-- Store management interface
-- Size selection components
-- Quantity tracking and updates
-- Interactive modal components
-- Form validation
+## Architecture
 
-## UI Components:
+The frontend follows a component-based architecture using React.js:
 
-- **Store Management**
-  - Store listing with filters
-  - Create/edit/delete store modals
-  - Store status toggle
+```
+┌─────────────────────────────────────────┐
+│                Frontend                 │
+│                                         │
+│  ┌─────────────┐    ┌─────────────────┐ │
+│  │   Components│    │  State Management│ │
+│  │             │◄──►│   (React Hooks)  │ │
+│  └─────────────┘    └─────────────────┘ │
+│          ▲                  ▲           │
+│          │                  │           │
+│          ▼                  ▼           │
+│  ┌─────────────┐    ┌─────────────────┐ │
+│  │    Router   │    │   API Services  │ │
+│  │             │    │     (Axios)     │ │
+│  └─────────────┘    └─────────────────┘ │
+│                          ▲              │
+└──────────────────────────┼──────────────┘
+                           │
+                           ▼
+                  ┌─────────────────┐
+                  │  Backend API    │
+                  │  (Spring Boot)  │
+                  └─────────────────┘
+```
 
-- **Material Management**
-  - Inventory listing with filters and pagination
-  - Add/edit/delete material modals
-  - Size and quantity selectors
+### Key Components
+- **Components Layer**: Reusable UI components
+- **State Management**: React Hooks for state and lifecycle management
+- **Router**: React Router for navigation and route protection
+- **API Services**: Axios for communication with backend services
 
-- **Authentication**
-  - Login form
-  - JWT token handling
-  - Role-based route protection
+## Technology Stack
 
-- **Common Components**
-  - Responsive tables
-  - Modal dialogs
-  - Form elements
-  - Navigation menu
+### Core Technologies
+- **React.js 18+**: Modern JavaScript library for building user interfaces
+- **React Router**: Declarative routing for React applications
+- **Axios**: Promise-based HTTP client for API communication
+- **Custom CSS**: Responsive styling with consistent design system
 
-## Styling Approach
+### State Management
+- **React Hooks**: useState, useEffect, useContext, useReducer
+- **Custom Hooks**: For shared functionality across components
 
-The application uses custom CSS for all styling, with a consistent design system including:
+### Development Tools
+- **Node.js 16+**: JavaScript runtime for frontend development
+- **npm**: Package manager for JavaScript
+- **ESLint**: JavaScript linting tool
+- **Prettier**: Code formatter
+- **Create React App**: React application bootstrapping
 
-- Color scheme based on blue, green, and red accents
-- Consistent button styling by action type
-- Responsive tables with alternating row colors
-- Modal dialogs for all forms
-- Mobile-friendly layout adjustments
+## Key Features
 
-## Getting Started
+### Authentication & Authorization
+- JWT token-based authentication
+- Role-based access control (SUPER_ADMIN, LOCAL_ADMIN)
+- Protected routes based on user roles
+- Login/logout functionality
 
-1. Ensure you have Node.js installed
-2. Install dependencies with `npm install`
-3. Configure API base URL in `src/services/api.js`
-4. Start development server with `npm start`
+### Inventory Management
+- Clothing item listing with filtering and sorting
+- Detailed item views with size and quantity information
+- Add/edit/delete inventory items
+- Quantity adjustment operations
 
-## API Integration
+### Store Management
+- Multi-store view and management
+- Store-specific inventory views
+- Transfer items between stores
+- Store performance metrics
 
-The frontend communicates with the Spring Boot backend via REST APIs for:
-- User authentication and role management
-- Store CRUD operations
-- Material/inventory management
-- Size reference data
+### User Interface
+- Responsive design for various screen sizes
+- Intuitive navigation with sidebar and breadcrumbs
+- Consistent styling across components
+- Form validation and error handling
 
-## Screenshots
+## Prerequisites
 
-*(Include screenshots of key interfaces here)*
+To set up and run the frontend application:
 
----
+- Node.js 16+ installed
+- npm package manager
+- Modern web browser (Chrome, Firefox, Edge)
+- Backend services running and accessible
 
-*Frontend documentation for GitHub repository*
+The application will be available at `http://localhost:3000`.
