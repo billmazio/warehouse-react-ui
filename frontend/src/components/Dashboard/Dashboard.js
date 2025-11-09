@@ -156,10 +156,10 @@ const Dashboard = () => {
                 {error && <p className="error-message">{error}</p>}
 
                 {location.pathname === "/dashboard" && (
-                    <section className="dashboard-cards">
+                    <section className="dashboard-cards" data-test="menu-cards">
                         <div
                             className="card"
-                            data-test="card-users"
+                            data-test="card-name"
                             onClick={() => handleNavigation("/dashboard/manage-users")}
                         >
                             <i className="fa fa-users card-icon"></i>
@@ -168,7 +168,7 @@ const Dashboard = () => {
                         </div>
                         <div
                             className="card"
-                            data-test="card-materials"
+                            data-test="card-name"
                             onClick={() => handleNavigation("/dashboard/manage-materials")}
                         >
                             <i className="fa fa-tshirt card-icon"></i>
@@ -177,7 +177,7 @@ const Dashboard = () => {
                         </div>
                         <div
                             className="card"
-                            data-test="card-orders"
+                            data-test="card-name"
                             onClick={() => handleNavigation("/dashboard/manage-orders")}
                         >
                             <i className="fa fa-shopping-cart card-icon"></i>
@@ -186,7 +186,7 @@ const Dashboard = () => {
                         </div>
                         <div
                             className="card"
-                            data-test="card-stores"
+                            data-test="card-name"
                             onClick={() => handleNavigation("/dashboard/manage-stores")}
                         >
                             <i className="fa fa-warehouse card-icon"></i>
