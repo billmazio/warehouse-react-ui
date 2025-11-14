@@ -163,5 +163,3 @@ See [warehouse-springboot-api](https://github.com/billmazio/warehouse-springboot
 - **React Hooks**: State management (useState, useEffect, useContext)
 - **Context API**: Global auth state management
 - **Custom CSS**: Responsive design with consistent styling
-
----
