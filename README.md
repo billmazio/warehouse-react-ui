@@ -165,7 +165,3 @@ See [warehouse-springboot-api](https://github.com/billmazio/warehouse-springboot
 - **Custom CSS**: Responsive design with consistent styling
 
 ---
-
-## 📝 License
-
-This project is licensed under the MIT License.
