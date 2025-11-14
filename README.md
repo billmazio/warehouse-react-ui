@@ -35,23 +35,23 @@ Modern single-page application for managing clothing inventory across multiple s
 **Testing:** Playwright E2E tests (see backend repository)
 
 ---
-
 ## 📱 Application Structure
-
-### Pages & Routes
 ```
 src/
-├── components/        # Reusable UI components
-├── pages/            # 6 main pages
-│   ├── Login.jsx
-│   ├── Dashboard.jsx
-│   ├── Materials.jsx
-│   ├── Orders.jsx
-│   ├── Stores.jsx
-│   └── Users.jsx
-├── services/         # API integration (Axios)
-├── context/          # Auth context & protected routes
-└── styles/           # Custom CSS
+├── components/           # 6 feature components
+│   ├── Dashboard/
+│   ├── MaterialsList/
+│   ├── OrderManagement/
+│   ├── PrivateRoute/
+│   ├── StoreManagement/
+│   └── UserManagement/
+├── pages/               # 3 main pages
+│   ├── ChangePassword/
+│   ├── Login/
+│   └── Setup/
+├── services/            # API integration (Axios)
+├── utils/               # Helper utilities
+└── App.js               # Main routing & layout
 ```
 
 ### Core Features
