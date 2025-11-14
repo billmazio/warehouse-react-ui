@@ -1,115 +1,105 @@
-# Warehouse Management System - Frontend Documentation
+# Warehouse Management System - React Frontend
 
-## Table of Contents
-1. [Frontend Overview](#frontend-overview)
-2. [Architecture](#architecture)
-3. [Technology Stack](#technology-stack)
-4. [Key Features](#key-features)
-5. [Prerequisites](#prerequisites)
+[![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow)](https://www.javascript.com/)
+[![Axios](https://img.shields.io/badge/Axios-1.x-purple)](https://axios-http.com/)
 
-## Frontend Overview
+Responsive React frontend for warehouse inventory management with JWT authentication and role-based access control.
 
-The frontend of the Warehouse Management System provides a responsive and intuitive user interface for clothing inventory management across multiple store locations. It handles user interactions, data presentation, and communicates with the backend API to perform operations.
+## 🔗 Related Repository
+- **Backend API**: [warehouse-springboot-api](https://github.com/YOUR_USERNAME/warehouse-springboot-api)
 
-### Key Objectives
-- Provide an intuitive user interface for inventory management
-- Implement role-based access control UI components
-- Display real-time inventory status and updates
-- Support multi-store operation views
-- Enable size and quantity management for clothing items
+---
 
-### Target Users
-- Store employees with LOCAL_ADMIN privileges
-- System administrators with SUPER_ADMIN privileges
-- Inventory managers and warehouse staff
+## 🎯 Overview
 
-## Architecture
+Modern single-page application for managing clothing inventory across multiple store locations. Features real-time updates, intuitive UI, and seamless integration with Spring Boot backend.
 
-The frontend follows a component-based architecture using React.js:
-
-```
-┌─────────────────────────────────────────┐
-│                Frontend                 │
-│                                         │
-│  ┌─────────────┐    ┌─────────────────┐ │
-│  │   Components│    │  State Management│ │
-│  │             │◄──►│   (React Hooks)  │ │
-│  └─────────────┘    └─────────────────┘ │
-│          ▲                  ▲           │
-│          │                  │           │
-│          ▼                  ▼           │
-│  ┌─────────────┐    ┌─────────────────┐ │
-│  │    Router   │    │   API Services  │ │
-│  │             │    │     (Axios)     │ │
-│  └─────────────┘    └─────────────────┘ │
-│                          ▲              │
-└──────────────────────────┼──────────────┘
-                           │
-                           ▼
-                  ┌─────────────────┐
-                  │  Backend API    │
-                  │  (Spring Boot)  │
-                  └─────────────────┘
-```
-
-### Key Components
-- **Components Layer**: Reusable UI components
-- **State Management**: React Hooks for state and lifecycle management
-- **Router**: React Router for navigation and route protection
-- **API Services**: Axios for communication with backend services
-
-## Technology Stack
-
-### Core Technologies
-- **React.js 18+**: Modern JavaScript library for building user interfaces
-- **React Router**: Declarative routing for React applications
-- **Axios**: Promise-based HTTP client for API communication
-- **Custom CSS**: Responsive styling with consistent design system
-
-### State Management
-- **React Hooks**: useState, useEffect, useContext, useReducer
-- **Custom Hooks**: For shared functionality across components
-
-### Development Tools
-- **Node.js 16+**: JavaScript runtime for frontend development
-- **npm**: Package manager for JavaScript
-- **ESLint**: JavaScript linting tool
-- **Prettier**: Code formatter
-- **Create React App**: React application bootstrapping
-
-## Key Features
-
-### Authentication & Authorization
+**Key Features:**
 - JWT token-based authentication
-- Role-based access control (SUPER_ADMIN, LOCAL_ADMIN)
-- Protected routes based on user roles
-- Login/logout functionality
+- Role-based UI (ADMIN, LOCAL_ADMIN)
+- Real-time inventory management
+- Multi-store operations
+- Responsive design
+- Greek language support
+
+---
+
+## 🛠️ Tech Stack
+
+**Frontend:** React 18 • React Router • Axios • React Hooks • Custom CSS  
+**Build Tools:** Node.js • npm • Create React App
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 16+
+- npm
+- Backend API running on `http://localhost:8080`
+
+### Setup
+```bash
+# Clone repository
+git clone https://github.com/YOUR_USERNAME/warehouse-react-app.git
+cd warehouse-react-app
+
+# Install dependencies
+npm install
+
+# Start development server
+npm start
+```
+
+Application available at `http://localhost:3000`
+
+---
+
+## 📱 Features
+
+### Authentication
+- Login with JWT tokens
+- Protected routes
+- Role-based access control
+- Automatic token refresh
 
 ### Inventory Management
-- Clothing item listing with filtering and sorting
-- Detailed item views with size and quantity information
-- Add/edit/delete inventory items
-- Quantity adjustment operations
+- View all materials with filtering
+- Add/edit/delete materials
+- Size and quantity management
+- Search by product name
 
-### Store Management
-- Multi-store view and management
-- Store-specific inventory views
-- Transfer items between stores
-- Store performance metrics
+### Order Management
+- Create orders linking users, materials, stores
+- Edit order status and quantity
+- View order history
+- Delete orders
 
-### User Interface
-- Responsive design for various screen sizes
-- Intuitive navigation with sidebar and breadcrumbs
-- Consistent styling across components
-- Form validation and error handling
+### Store & User Management
+- Manage multiple stores
+- Create users associated with stores
+- Role assignment (ADMIN, LOCAL_ADMIN)
+- Store-specific views
 
-## Prerequisites
+---
 
-To set up and run the frontend application:
+### Key Technologies
+- **React Router**: Client-side routing with protected routes
+- **Axios**: HTTP client for API calls with interceptors
+- **React Hooks**: State management (useState, useEffect, useContext)
+- **Custom CSS**: Responsive design with consistent styling
 
-- Node.js 16+ installed
-- npm package manager
-- Modern web browser (Chrome, Firefox, Edge)
-- Backend services running and accessible
+---
 
-The application will be available at `http://localhost:3000`.
+## 🔌 API Integration
+
+All API calls go through Axios services with JWT token handling:
+```javascript
+// Example: Login
+POST http://localhost:8080/api/auth/login
+
+// Example: Get materials
+GET http://localhost:8080/api/materials
+Authorization: Bearer <token>
+```
