@@ -7,7 +7,7 @@
 Responsive React frontend for warehouse inventory management with JWT authentication and role-based access control.
 
 ## 🔗 Related Repository
-- **Backend API**: [warehouse-springboot-api](https://github.com/YOUR_USERNAME/warehouse-springboot-api)
+- **Backend API**: [warehouse-springboot-api](https://github.com/billmazio/warehouse-springboot-api)
 
 ---
 
