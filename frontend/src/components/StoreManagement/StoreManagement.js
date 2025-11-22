@@ -238,7 +238,7 @@ const StoreManagement = () => {
         <div className="store-management-container">
             <style>{statusStyles}</style>
             <ToastContainer />
-            <button onClick={() => navigate("/dashboard")} className="back-button">
+            <button onClick={() => navigate("/dashboard")} className="back-button" data-test="back-to-dashboard" >
                 Πίσω στην Κεντρική Διαχείριση
             </button>
 
