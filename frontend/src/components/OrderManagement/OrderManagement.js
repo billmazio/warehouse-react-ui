@@ -687,13 +687,13 @@ const OrderManagement = () => {
             )}
 
             <div className="pagination-controls">
-                <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 0}>
+                <button data-test="pagination-prev" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 0}>
                     Προηγούμενη
                 </button>
                 <span>
                     Σελίδα {currentPage + 1} από {totalPages}
                 </span>
-                <button
+                <button data-test="pagination-next"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage + 1 === totalPages}
                 >
