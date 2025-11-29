@@ -159,8 +159,7 @@ const Dashboard = () => {
                     <section className="dashboard-cards" data-test="menu-cards">
                         <div
                             className="card"
-                            data-test="card-name"
-                            data-test-section="card-users"
+                            data-test="card-users"
                             onClick={() => handleNavigation("/dashboard/manage-users")}
                         >
                             <i className="fa fa-users card-icon"></i>
@@ -169,8 +168,7 @@ const Dashboard = () => {
                         </div>
                         <div
                             className="card"
-                            data-test="card-name"
-                            data-test-section="card-materials"
+                            data-test="card-materials"
                             onClick={() => handleNavigation("/dashboard/manage-materials")}
                         >
                             <i className="fa fa-tshirt card-icon"></i>
@@ -179,8 +177,7 @@ const Dashboard = () => {
                         </div>
                         <div
                             className="card"
-                            data-test="card-name"
-                            data-test-section="card-orders"
+                            data-test="card-orders"
                             onClick={() => handleNavigation("/dashboard/manage-orders")}
                         >
                             <i className="fa fa-shopping-cart card-icon"></i>
@@ -189,8 +186,7 @@ const Dashboard = () => {
                         </div>
                         <div
                             className="card"
-                            data-test="card-name"
-                            data-test-section="card-stores"
+                            data-test="card-stores"
                             onClick={() => handleNavigation("/dashboard/manage-stores")}
                         >
                             <i className="fa fa-warehouse card-icon"></i>
