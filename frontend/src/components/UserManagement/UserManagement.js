@@ -191,29 +191,13 @@ const UserManagement = () => {
                 storeId: newUser.storeId
             });
 
-            let createdUser = await createUser({
+            const createdUser = await createUser({
                 username: newUser.username,
                 password: newUser.password,
                 role: (newUser.role || "LOCAL_ADMIN").toUpperCase(),
                 status: newUser.status, // Use status enum instead of enable
                 storeId: newUser.storeId,
             });
-
-            // IMPORTANT FIX: Ensure the created user has status field
-            // If backend returns legacy 'enable' field instead of 'status', convert it
-            if (!createdUser.status && createdUser.enable !== undefined) {
-                createdUser = {
-                    ...createdUser,
-                    status: UserStatus.fromEnable(createdUser.enable)
-                };
-            }
-            // Fallback: If neither status nor enable exists, set to ACTIVE (what was sent)
-            else if (!createdUser.status) {
-                createdUser = {
-                    ...createdUser,
-                    status: newUser.status
-                };
-            }
 
             setUsers((prev) => [...prev, createdUser]);
 
