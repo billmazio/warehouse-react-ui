@@ -24,119 +24,56 @@ const logOrderData = (order, operation) => {
 // CSS for status colors
 const statusStyles = `
 .status-pending {
-    background-color: #ff9800 !important;
-    color: black !important;
-    font-weight: bold !important;
+  background-color: #ff9800 !important;
+  color: black !important;
+  font-weight: bold !important;
 }
 .status-processing {
-    background-color: #2196f3 !important;
-    color: black !important;
-    font-weight: bold !important;
+  background-color: #2196f3 !important;
+  color: black !important;
+  font-weight: bold !important;
 }
 .status-completed {
-    background-color: #4caf50 !important;
-    color: black !important;
-    font-weight: bold !important;
+  background-color: #4caf50 !important;
+  color: black !important;
+  font-weight: bold !important;
 }
 .status-cancelled {
-    background-color: #f44336 !important;
-    color: black !important;
-    font-weight: bold !important;
+  background-color: #f44336 !important;
+  color: black !important;
+  font-weight: bold !important;
 }
 `;
 
 const OrderManagement = () => {
     const navigate = useNavigate();
+
     const [stores, setStores] = useState([]);
     const [users, setUsers] = useState([]);
     const [materials, setMaterials] = useState([]);
     const [sizes, setSizes] = useState([]);
     const [orders, setOrders] = useState([]);
+
     const [materialSizeWarnings, setMaterialSizeWarnings] = useState(new Set());
+
     const [newOrder, setNewOrder] = useState({
         quantity: 0,
         dateOfOrder: "",
-        stock:"",
+        stock: "",
         orderStatus: "PENDING",
+
+        // These fields remain for UI selection/filtering.
         user: { username: "" },
         store: { title: "" },
         material: { text: "" },
         size: { name: "" },
-        materialStoreId: "",
+
+        // IMPORTANT: what backend needs now
+        materialId: "",
     });
 
-    // Define OrderStatus enum to match backend
-    const OrderStatus = {
-        PENDING: "PENDING",
-        PROCESSING: "PROCESSING",
-        COMPLETED: "COMPLETED",
-        CANCELLED: "CANCELLED",
-
-        // Convert from display text to enum value
-        fromGreekText: (text) => {
-            switch (text) {
-                case "ΕΚΚΡΕΜΕΙ": return "PENDING";
-                case "ΣΕ ΕΠΕΞΕΡΓΑΣΙΑ": return "PROCESSING";
-                case "ΟΛΟΚΛΗΡΩΜΕΝΗ": return "COMPLETED";
-                case "ΑΚΥΡΩΜΕΝΗ": return "CANCELLED";
-                default: return "PENDING";
-            }
-        },
-
-        // Convert from enum value to display text (matching backend toString())
-        toGreekText: (status) => {
-            switch (status) {
-                case "PENDING": return "ΕΚΚΡΕΜΕΙ";
-                case "PROCESSING": return "ΣΕ ΕΠΕΞΕΡΓΑΣΙΑ";
-                case "COMPLETED": return "ΟΛΟΚΛΗΡΩΜΕΝΗ";
-                case "CANCELLED": return "ΑΚΥΡΩΜΕΝΗ";
-                default: return "Άγνωστη Κατάσταση";
-            }
-        },
-
-        // Convert from previous integer status to enum value
-        fromLegacyStatus: (statusNum) => {
-            switch (Number(statusNum)) {
-                case 1: return "PENDING";
-                case 2: return "COMPLETED";
-                case 3: return "CANCELLED";
-                default: return "PENDING";
-            }
-        },
-
-        // Check if status is active (pending or processing)
-        isActive: (status) => {
-            return status === "PENDING" || status === "PROCESSING";
-        },
-
-        // Check if status is completed
-        isCompleted: (status) => {
-            return status === "COMPLETED";
-        },
-
-        // Check if status is cancelled
-        isCancelled: (status) => {
-            return status === "CANCELLED";
-        }
-    };
-
-    // Get CSS class name for status styling
-    const getStatusClassName = (status) => {
-        if (typeof status === 'number') {
-            // Handle legacy status
-            status = OrderStatus.fromLegacyStatus(status);
-        }
-
-        switch (status) {
-            case "PENDING": return "status-pending";
-            case "PROCESSING": return "status-processing";
-            case "COMPLETED": return "status-completed";
-            case "CANCELLED": return "status-cancelled";
-            default: return "";
-        }
-    };
-
     const [editingOrder, setEditingOrder] = useState(null);
+
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const pageSize = 5;
@@ -144,23 +81,92 @@ const OrderManagement = () => {
     const [orderToDelete, setOrderToDelete] = useState(null);
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
 
+    // OrderStatus helpers
+    const OrderStatus = {
+        PENDING: "PENDING",
+        PROCESSING: "PROCESSING",
+        COMPLETED: "COMPLETED",
+        CANCELLED: "CANCELLED",
+
+        fromGreekText: (text) => {
+            switch (text) {
+                case "ΕΚΚΡΕΜΕΙ":
+                    return "PENDING";
+                case "ΣΕ ΕΠΕΞΕΡΓΑΣΙΑ":
+                    return "PROCESSING";
+                case "ΟΛΟΚΛΗΡΩΜΕΝΗ":
+                    return "COMPLETED";
+                case "ΑΚΥΡΩΜΕΝΗ":
+                    return "CANCELLED";
+                default:
+                    return "PENDING";
+            }
+        },
+
+        toGreekText: (status) => {
+            switch (status) {
+                case "PENDING":
+                    return "ΕΚΚΡΕΜΕΙ";
+                case "PROCESSING":
+                    return "ΣΕ ΕΠΕΞΕΡΓΑΣΙΑ";
+                case "COMPLETED":
+                    return "ΟΛΟΚΛΗΡΩΜΕΝΗ";
+                case "CANCELLED":
+                    return "ΑΚΥΡΩΜΕΝΗ";
+                default:
+                    return "Άγνωστη Κατάσταση";
+            }
+        },
+
+        fromLegacyStatus: (statusNum) => {
+            switch (Number(statusNum)) {
+                case 1:
+                    return "PENDING";
+                case 2:
+                    return "COMPLETED";
+                case 3:
+                    return "CANCELLED";
+                default:
+                    return "PENDING";
+            }
+        },
+    };
+
+    const getStatusClassName = (status) => {
+        if (typeof status === "number") {
+            status = OrderStatus.fromLegacyStatus(status);
+        }
+
+        switch (status) {
+            case "PENDING":
+                return "status-pending";
+            case "PROCESSING":
+                return "status-processing";
+            case "COMPLETED":
+                return "status-completed";
+            case "CANCELLED":
+                return "status-cancelled";
+            default:
+                return "";
+        }
+    };
+
     // Function to check if a material/size combination still exists
     const checkMaterialSizeExistence = async () => {
         try {
             const warningSet = new Set();
 
-            // Check each order for potential issues
             for (const order of orders) {
                 const materialText = order.material?.text || order.materialText;
                 const sizeName = order.size?.name || order.sizeName;
                 const storeTitle = order.store?.title || order.storeTitle;
 
                 if (materialText && sizeName && storeTitle) {
-                    // Check if this material/size combination still exists in materials
-                    const matchingMaterial = materials.find(material =>
-                        material.text === materialText &&
-                        material.sizeName === sizeName &&
-                        stores.find(store => store.id === material.storeId)?.title === storeTitle
+                    const matchingMaterial = materials.find(
+                        (material) =>
+                            material.text === materialText &&
+                            material.sizeName === sizeName &&
+                            stores.find((store) => store.id === material.storeId)?.title === storeTitle
                     );
 
                     if (!matchingMaterial) {
@@ -175,14 +181,13 @@ const OrderManagement = () => {
         }
     };
 
-    // Run the check whenever orders, materials, or stores change
     useEffect(() => {
         if (orders.length > 0 && materials.length > 0 && stores.length > 0) {
             checkMaterialSizeExistence();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [orders, materials, stores]);
 
-    // Function to get warning message for an order
     const getWarningMessage = (order) => {
         if (!materialSizeWarnings.has(order.id)) return null;
 
@@ -192,7 +197,6 @@ const OrderManagement = () => {
         return `⚠️ Προειδοποίηση: Το υλικό "${materialText}" με μέγεθος "${sizeName}" δεν υπάρχει πλέον στα διαθέσιμα προϊόντα. Αυτή η παραγγελία ενδέχεται να έχει ξεπερασμένες πληροφορίες.`;
     };
 
-    // Add warning summary at the top of the table
     const renderWarningSummary = () => {
         if (materialSizeWarnings.size === 0) return null;
 
@@ -201,19 +205,23 @@ const OrderManagement = () => {
                 <div className="warning-banner">
                     <i className="fa fa-exclamation-triangle"></i>
                     <span>
-                        <strong>Προειδοποίηση:</strong> {materialSizeWarnings.size} παραγγελία(ες)
-                        αναφέρονται σε προϊόντα που δεν υπάρχουν πλέον στα διαθέσιμα υλικά.
-                        Ελέγξτε τις παραγγελίες με το σύμβολο ⚠️ για περισσότερες πληροφορίες.
-                    </span>
+            <strong>Προειδοποίηση:</strong> {materialSizeWarnings.size} παραγγελία(ες) αναφέρονται σε προϊόντα που δεν
+            υπάρχουν πλέον στα διαθέσιμα υλικά. Ελέγξτε τις παραγγελίες με το σύμβολο ⚠️ για περισσότερες πληροφορίες.
+          </span>
                 </div>
             </div>
         );
     };
 
-    // Enhanced table row with warning indicator
     const renderOrderRow = (order) => {
         const hasWarning = materialSizeWarnings.has(order.id);
         const warningMessage = getWarningMessage(order);
+
+        const displayStatus =
+            OrderStatus.toGreekText(order.orderStatus) ||
+            (typeof order.status === "number"
+                ? OrderStatus.toGreekText(OrderStatus.fromLegacyStatus(order.status))
+                : "Άγνωστη Κατάσταση");
 
         return (
             <tr key={order.id} className={hasWarning ? "order-row-warning" : ""} data-test="order-row">
@@ -224,12 +232,9 @@ const OrderManagement = () => {
                     <div className="material-cell">
                         {order.material?.text || order.materialText}
                         {hasWarning && (
-                            <span
-                                className="warning-icon"
-                                title={warningMessage}
-                            >
-                                ⚠️
-                            </span>
+                            <span className="warning-icon" title={warningMessage}>
+                ⚠️
+              </span>
                         )}
                     </div>
                 </td>
@@ -237,23 +242,15 @@ const OrderManagement = () => {
                     <div className="size-cell">
                         {order.size?.name || order.sizeName}
                         {hasWarning && (
-                            <span
-                                className="warning-icon"
-                                title={warningMessage}
-                            >
-                                ⚠️
-                            </span>
+                            <span className="warning-icon" title={warningMessage}>
+                ⚠️
+              </span>
                         )}
                     </div>
                 </td>
                 <td>{order.store?.title || order.storeTitle}</td>
                 <td>{order.user?.username || order.userName}</td>
-                <td className={getStatusClassName(order.orderStatus || order.status)}>
-                    {OrderStatus.toGreekText(order.orderStatus) ||
-                        (typeof order.status === 'number' ?
-                            OrderStatus.toGreekText(OrderStatus.fromLegacyStatus(order.status)) :
-                            "Άγνωστη Κατάσταση")}
-                </td>
+                <td className={getStatusClassName(order.orderStatus || order.status)}>{displayStatus}</td>
                 <td>
                     <div className="order-action-buttons">
                         <button
@@ -278,34 +275,31 @@ const OrderManagement = () => {
         );
     };
 
-    // Load data for the component
+    // Load data
     const loadData = async (page = 0, size = 5) => {
         try {
-            const [storeData, userData, materialData, sizeData, loggedInUser] =
-                await Promise.all([fetchStores(), fetchUsers(), fetchMaterials(), fetchSizes(), fetchUserDetails()]);
+            const [storeData, userData, materialData, sizeData, loggedInUser] = await Promise.all([
+                fetchStores(),
+                fetchUsers(),
+                fetchMaterials(),
+                fetchSizes(),
+                fetchUserDetails(),
+            ]);
 
             setStores(storeData);
             setUsers(userData);
             setMaterials(materialData);
             setSizes(sizeData);
 
-            console.log("Fetched data:", {
-                stores: storeData,
-                users: userData,
-                materials: materialData,
-                sizes: sizeData
-            });
-
             const userRoles = (loggedInUser.roles || []).map((role) => role.name);
+
             if (userRoles.includes("SUPER_ADMIN")) {
                 const orderData = await fetchOrders(page, size, null, null, "", "");
-                console.log("Fetched orders:", orderData);
                 setOrders(orderData.content || []);
                 setTotalPages(orderData.totalPages || 0);
             } else if (userRoles.includes("LOCAL_ADMIN")) {
                 const userStoreId = loggedInUser.store.id;
                 const orderData = await fetchOrders(page, size, userStoreId, null, "", "");
-                console.log("Fetched orders:", orderData);
                 setOrders(orderData.content || []);
                 setTotalPages(orderData.totalPages || 0);
             }
@@ -329,10 +323,8 @@ const OrderManagement = () => {
             toast.warning("Παρακαλώ επιλέξτε ημερομηνία παραγγελίας");
             return false;
         }
-        if (!newOrder.user.username) {
-            toast.warning("Παρακαλώ επιλέξτε χρήστη");
-            return false;
-        }
+
+        // UI validation still uses these:
         if (!newOrder.store.title) {
             toast.warning("Παρακαλώ επιλέξτε αποθήκη");
             return false;
@@ -345,33 +337,39 @@ const OrderManagement = () => {
             toast.warning("Παρακαλώ επιλέξτε μέγεθος");
             return false;
         }
+
+        // IMPORTANT: backend requires materialId now
+        if (!newOrder.materialId) {
+            toast.warning("Παρακαλώ επιλέξτε υλικό (materialId)");
+            return false;
+        }
+
+        // user is no longer required by backend if user is from auth,
+        // but keep it if your UI needs it
+        if (!newOrder.user.username) {
+            toast.warning("Παρακαλώ επιλέξτε χρήστη");
+            return false;
+        }
+
         return true;
     };
 
     const handleCreate = async () => {
         if (!validateOrder()) return;
 
-        // Prepare the order data for API
         const orderData = {
             quantity: newOrder.quantity,
             dateOfOrder: newOrder.dateOfOrder,
             orderStatus: newOrder.orderStatus,
-            user: { username: newOrder.user.username },
-            store: { title: newOrder.store.title },
-            material: { text: newOrder.material.text },
-            size: { name: newOrder.size.name },
-            materialStoreId: newOrder.materialStoreId
+            materialId: newOrder.materialId,
         };
 
-        // Log the data for debugging
         logOrderData(orderData, "Create");
 
         try {
-            const createdOrder = await createOrder(orderData);
-            setOrders((prev) => [...prev, createdOrder]);
+            await createOrder(orderData);
             resetOrderForm();
             toast.success("Η παραγγελία δημιουργήθηκε με επιτυχία.");
-            // Refresh the orders list to get the latest data
             loadData(currentPage, pageSize);
         } catch (err) {
             console.error("API Error:", err);
@@ -389,12 +387,13 @@ const OrderManagement = () => {
         setNewOrder({
             quantity: 0,
             dateOfOrder: "",
+            stock: "",
             orderStatus: "PENDING",
             user: { username: "" },
             store: { title: "" },
             material: { text: "" },
             size: { name: "" },
-            materialStoreId: "",
+            materialId: "",
         });
         setEditingOrder(null);
     };
@@ -403,19 +402,13 @@ const OrderManagement = () => {
         if (!editingOrder) return;
         if (!validateOrder()) return;
 
-        // Prepare the order data for API
         const orderData = {
             quantity: newOrder.quantity,
             dateOfOrder: newOrder.dateOfOrder,
             orderStatus: newOrder.orderStatus,
-            user: { username: newOrder.user.username },
-            store: { title: newOrder.store.title },
-            material: { text: newOrder.material.text },
-            size: { name: newOrder.size.name },
-            materialStoreId: newOrder.materialStoreId
+            materialId: newOrder.materialId,
         };
 
-        // Log the data for debugging
         logOrderData(orderData, "Edit");
 
         try {
@@ -423,7 +416,6 @@ const OrderManagement = () => {
             setOrders((prev) => prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o)));
             toast.success("Η παραγγελία ενημερώθηκε με επιτυχία.");
             resetOrderForm();
-            // Refresh the orders list to get the latest data
             loadData(currentPage, pageSize);
         } catch (err) {
             console.error("API Edit Error:", err);
@@ -439,37 +431,28 @@ const OrderManagement = () => {
 
     const handleEditButtonClick = (orderId) => {
         const orderToEdit = orders.find((order) => order.id === orderId);
-        if (orderToEdit) {
-            console.log("Editing order:", orderToEdit);
-            setEditingOrder(orderToEdit);
+        if (!orderToEdit) return;
 
-            // Handle potential legacy integer status from existing orders
-            let orderStatus = orderToEdit.orderStatus;
-            if (typeof orderToEdit.status === 'number') {
-                // Convert from old integer status to new enum status
-                orderStatus = OrderStatus.fromLegacyStatus(orderToEdit.status);
-            }
+        setEditingOrder(orderToEdit);
 
-            // Handle both old and new data structures
-            setNewOrder({
-                quantity: orderToEdit.quantity,
-                dateOfOrder: orderToEdit.dateOfOrder,
-                orderStatus: orderStatus || "PENDING",
-                user: {
-                    username: orderToEdit.user?.username || orderToEdit.userName
-                },
-                store: {
-                    title: orderToEdit.store?.title || orderToEdit.storeTitle
-                },
-                material: {
-                    text: orderToEdit.material?.text || orderToEdit.materialText
-                },
-                size: {
-                    name: orderToEdit.size?.name || orderToEdit.sizeName
-                },
-                materialStoreId: orderToEdit.materialStoreId,
-            });
+        let orderStatus = orderToEdit.orderStatus;
+        if (typeof orderToEdit.status === "number") {
+            orderStatus = OrderStatus.fromLegacyStatus(orderToEdit.status);
         }
+
+        setNewOrder({
+            quantity: orderToEdit.quantity,
+            dateOfOrder: orderToEdit.dateOfOrder,
+            stock: orderToEdit.stock || "",
+            orderStatus: orderStatus || "PENDING",
+            user: { username: orderToEdit.user?.username || orderToEdit.userName || "" },
+            store: { title: orderToEdit.store?.title || orderToEdit.storeTitle || "" },
+            material: { text: orderToEdit.material?.text || orderToEdit.materialText || "" },
+            size: { name: orderToEdit.size?.name || orderToEdit.sizeName || "" },
+
+            // IMPORTANT: ensure edit form keeps the id
+            materialId: orderToEdit.materialId || "",
+        });
     };
 
     const openConfirmationDialog = (order) => {
@@ -498,7 +481,7 @@ const OrderManagement = () => {
         if (newPage >= 0 && newPage < totalPages) setCurrentPage(newPage);
     };
 
-    // Derived lists
+    // Derived lists for UI
     const filteredMaterials = materials.filter((m) => m.storeTitle === newOrder.store.title);
     const filteredSizes = sizes.filter((s) => filteredMaterials.some((m) => m.sizeId === s.id));
     const uniqueMaterials = filteredMaterials.reduce((acc, m) => {
@@ -510,11 +493,13 @@ const OrderManagement = () => {
         <div className="order-management-container">
             <style>{statusStyles}</style>
             <ToastContainer />
-            <button onClick={() => navigate("/dashboard")} className="back-button" data-test="back-to-dashboard" >
+
+            <button onClick={() => navigate("/dashboard")} className="back-button" data-test="back-to-dashboard">
                 Πίσω στην Κεντρική Διαχείριση
             </button>
 
             <h2>{editingOrder ? "Επεξεργασία" : "Δημιουργία"} Παραγγελίας</h2>
+
             <div className="order-create-form" data-test="order-form">
                 <input
                     type="number"
@@ -529,6 +514,7 @@ const OrderManagement = () => {
                     }
                     data-test="order-quantity"
                 />
+
                 <input
                     type="date"
                     placeholder="Ημερομηνία Παραγγελίας"
@@ -539,12 +525,15 @@ const OrderManagement = () => {
 
                 <select
                     value={newOrder.store.title}
-                    onChange={(e) => setNewOrder({
-                        ...newOrder,
-                        store: { title: e.target.value },
-                        material: { text: "" }, // Clear material when store changes
-                        size: { name: "" } // Clear size when store changes
-                    })}
+                    onChange={(e) =>
+                        setNewOrder({
+                            ...newOrder,
+                            store: { title: e.target.value },
+                            material: { text: "" },
+                            size: { name: "" },
+                            materialId: "", // IMPORTANT reset
+                        })
+                    }
                     data-test="order-store"
                 >
                     <option value="" disabled>
@@ -564,8 +553,8 @@ const OrderManagement = () => {
                         setNewOrder({
                             ...newOrder,
                             material: { text: e.target.value },
-                            materialStoreId: selectedMaterial ? selectedMaterial.id : "",
-                            size: { name: "" } // Clear size when material changes
+                            materialId: selectedMaterial ? selectedMaterial.id : "",
+                            size: { name: "" },
                         });
                     }}
                     disabled={!newOrder.store.title}
@@ -583,10 +572,7 @@ const OrderManagement = () => {
 
                 <select
                     value={newOrder.size.name}
-                    onChange={(e) => setNewOrder({
-                        ...newOrder,
-                        size: { name: e.target.value }
-                    })}
+                    onChange={(e) => setNewOrder({ ...newOrder, size: { name: e.target.value } })}
                     disabled={!newOrder.material.text}
                     data-test="order-size"
                 >
@@ -602,10 +588,7 @@ const OrderManagement = () => {
 
                 <select
                     value={newOrder.user.username}
-                    onChange={(e) => setNewOrder({
-                        ...newOrder,
-                        user: { username: e.target.value }
-                    })}
+                    onChange={(e) => setNewOrder({ ...newOrder, user: { username: e.target.value } })}
                     data-test="order-user"
                 >
                     <option value="" disabled>
@@ -647,6 +630,7 @@ const OrderManagement = () => {
             {renderWarningSummary()}
 
             <h2>Λίστα Παραγγελιών</h2>
+
             <table className="order-table" data-test="orders-table">
                 <thead>
                 <tr>
@@ -661,18 +645,14 @@ const OrderManagement = () => {
                     <th>ΕΝΕΡΓΕΙΕΣ</th>
                 </tr>
                 </thead>
-                <tbody>
-                {orders.map((order) => renderOrderRow(order))}
-                </tbody>
+                <tbody>{orders.map((order) => renderOrderRow(order))}</tbody>
             </table>
 
-            {/* Confirmation modal */}
             {isConfirmationOpen && (
                 <div className="confirmation-dialog" data-test="confirmation-dialog">
                     <div className="confirmation-content">
                         <p>
-                            Είστε σίγουροι ότι θέλετε να διαγράψετε την παραγγελία{" "}
-                            <strong>#{orderToDelete?.id}</strong>;
+                            Είστε σίγουροι ότι θέλετε να διαγράψετε την παραγγελία <strong>#{orderToDelete?.id}</strong>;
                         </p>
                         <div className="order-button-group">
                             <button className="order-cancel-button" onClick={closeConfirmationDialog} data-test="confirm-cancel">
@@ -691,9 +671,10 @@ const OrderManagement = () => {
                     Προηγούμενη
                 </button>
                 <span>
-                    Σελίδα {currentPage + 1} από {totalPages}
-                </span>
-                <button data-test="pagination-next"
+          Σελίδα {currentPage + 1} από {totalPages}
+        </span>
+                <button
+                    data-test="pagination-next"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage + 1 === totalPages}
                 >

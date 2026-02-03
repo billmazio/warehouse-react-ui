@@ -69,7 +69,7 @@ const CentralMaterialsList = () => {
             const conflictingOrders = orders.filter(order => {
                 // Check if the order uses this material (by materialStoreId or material.id)
                 const usesMaterial =
-                    order.materialStoreId === materialId ||
+                    order.materialId === materialId ||
                     order.material?.id === materialId ||
                     (order.material?.text === materialText && order.store?.title === getStoreTitle(editingMaterial?.storeId));
 

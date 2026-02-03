@@ -348,26 +348,15 @@ export const fetchOrders = async (page = 0, size = 5, storeId = null, userId = n
 
 export const createOrder = async (orderData) => {
     try {
-        const response = await api.post("/api/orders",  {
-            dateOfOrder: orderData.dateOfOrder,
+        const response = await api.post("/api/orders", {
+            materialId: orderData.materialId,
             quantity: orderData.quantity,
-            orderStatus: orderData.orderStatus,
-            store: {
-                title: orderData.store.title
-            },
-            material: {
-                text: orderData.material.text
-            },
-            size: {
-                name: orderData.size.name
-            },
-            user: {
-                username: orderData.user.username
-            }
+            dateOfOrder: orderData.dateOfOrder,
+            orderStatus: orderData.orderStatus
         });
         return response.data;
     } catch (error) {
-        console.error('Error creating order:', error.response || error.message);
+        console.error("Error creating order:", error.response || error.message);
         throw error;
     }
 };
